@@ -16,9 +16,9 @@ const HomeComponent = () => {
 						Home
 					</Link>
 					<Link
-						to={'/home'}
+						to={'/staffdashboard'}
 						className='pr-10 text-color6 active:text-white'>
-						Jobs
+						Dashboard
 					</Link>
 					<Link
 						to={'/home'}

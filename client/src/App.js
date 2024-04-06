@@ -2,6 +2,7 @@ import './output.css';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import HomeComponent from './routes/HomeComponent';
 import LoginComponent from './routes/Login';
+import Staff from './routes/Staff';
 import SignupComponent from './routes/Signup';
 import LoggedInHome from './routes/LoggedInHome.js';
 import { useCookies } from 'react-cookie';
@@ -14,6 +15,10 @@ function App() {
 			<BrowserRouter>
 				{cookie.token && cookie.token !== undefined ? (
 					<Routes>
+						<Route
+							path='/staffdashboard'
+							element={cookie.access === 'user' ? <Staff /> : <LoggedInHome />}
+						/>
 						<Route
 							path='/home'
 							element=<LoggedInHome />
