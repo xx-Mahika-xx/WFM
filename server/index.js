@@ -5,6 +5,7 @@ const JwtStrategy = require('passport-jwt').Strategy,
 const passport = require('passport');
 const User = require('./models/User');
 const authRoutes = require('./routes/auth');
+const dataRoutes = require('./routes/data');
 require('dotenv').config();
 const cors = require('cors');
 const app = express();
@@ -51,6 +52,7 @@ app.get('/', (req, res) => {
 	res.send('Hello World');
 });
 app.use('/auth', authRoutes);
+app.use('/data', dataRoutes);
 
 app.listen(port, () => {
 	console.log('App is running on port ' + port);
