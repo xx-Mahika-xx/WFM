@@ -1,11 +1,10 @@
 import { useState } from "react";
 import IconText from "../components/IconText";
-// import { Link } from "react-router-dom";
 import { useCookies } from "react-cookie";
-import Stats from "../Pages/Stats";
-import Approvals from "../Pages/Approvals";
+import Calender from "./Calender";
+import Leave from "./Leave";
 
-const LoggedInContainer = ({ children, curActiveScreen }) => {
+const EmployeeContainer = ({ children, curActiveScreen }) => {
   const [cookie] = useCookies(["token"]);
   const logout = () => {
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC";
@@ -32,7 +31,7 @@ const LoggedInContainer = ({ children, curActiveScreen }) => {
     );
   };
 
-  const [currentPage, setCurrentPage] = useState("stats");
+  const [currentPage, setCurrentPage] = useState("calender");
 
   const handlePageChange = (pageName) => {
     setCurrentPage(pageName);
@@ -46,16 +45,16 @@ const LoggedInContainer = ({ children, curActiveScreen }) => {
             <div className="py-1">
               <IconText
                 iconName={"ic:round-home"}
-                displayText={"Dashboard"}
-                onClick={() => handlePageChange("stats")}
+                displayText={"Calender"}
+                onClick={() => handlePageChange("calender")}
                 color={currentPage === "stats" ? "white" : "gray"}
               />
             </div>
             <div className="py-1">
               <IconText
                 iconName={"ic:round-home"}
-                displayText={"Approvals"}
-                onClick={() => handlePageChange("approvals")}
+                displayText={"Apply for Leave"}
+                onClick={() => handlePageChange("leave")}
                 color={currentPage === "approvals" ? "white" : "gray"}
               />
             </div>
@@ -89,8 +88,8 @@ const LoggedInContainer = ({ children, curActiveScreen }) => {
             </div>
           </div>
           <div className="content pl-10 pr-10 pb-10 overflow-auto">
-            {currentPage === "stats" && <Stats />}
-            {currentPage === "approvals" && <Approvals />}
+            {currentPage === "calender" && <Calender />}
+            {currentPage === "leave" && <Leave />}
           </div>
         </div>
       </div>
@@ -98,4 +97,4 @@ const LoggedInContainer = ({ children, curActiveScreen }) => {
   );
 };
 
-export default LoggedInContainer;
+export default EmployeeContainer;
