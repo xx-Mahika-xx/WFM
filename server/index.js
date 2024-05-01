@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 const express = require('express');
 const mongoose = require('mongoose');
 const JwtStrategy = require('passport-jwt').Strategy,
@@ -9,17 +8,7 @@ const authRoutes = require('./routes/auth');
 const dataRoutes = require('./routes/data');
 require('dotenv').config();
 const cors = require('cors');
-=======
-const express = require("express");
-const mongoose = require("mongoose");
-const JwtStrategy = require("passport-jwt").Strategy,
-  ExtractJwt = require("passport-jwt").ExtractJwt;
-const passport = require("passport");
-const User = require("./models/User");
-const authRoutes = require("./routes/auth");
-require("dotenv").config();
-const cors = require("cors");
->>>>>>> 527126f5a6f5ce53e3cccb37d19a4b0d53f5384c
+
 const app = express();
 const port = 8080;
 

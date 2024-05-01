@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const Job = new mongoose.Schema({
+const Available = new mongoose.Schema({
     employeeId: {
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'User', 
@@ -20,13 +20,13 @@ const Job = new mongoose.Schema({
         type: [Number],
         required: true,
     },
-    status: {
-        type: String,
-        enum: ['working', 'available', 'notavailable', 'onleave'], 
-        default: 'notavailable',
-    },
+    credits: {
+        type: Number,
+        required: true,
+        default: 0,
+    }
 });
 
-const JobModel = mongoose.model('Job', Job);
+const AvailableModel = mongoose.model('Available', Available);
 
-module.exports = JobModel;
+module.exports = AvailableModel;
