@@ -1,12 +1,14 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const JwtStrategy = require("passport-jwt").Strategy,
-  ExtractJwt = require("passport-jwt").ExtractJwt;
-const passport = require("passport");
-const User = require("./models/User");
-const authRoutes = require("./routes/auth");
-require("dotenv").config();
-const cors = require("cors");
+const express = require('express');
+const mongoose = require('mongoose');
+const JwtStrategy = require('passport-jwt').Strategy,
+	ExtractJwt = require('passport-jwt').ExtractJwt;
+const passport = require('passport');
+const User = require('./models/User');
+const authRoutes = require('./routes/auth');
+const dataRoutes = require('./routes/data');
+require('dotenv').config();
+const cors = require('cors');
+
 const app = express();
 const port = 8080;
 
@@ -50,7 +52,10 @@ passport.use(
 app.get("/", (req, res) => {
   res.send("Hello World");
 });
-app.use("/auth", authRoutes);
+
+app.use('/auth', authRoutes);
+app.use('/data', dataRoutes);
+
 
 app.listen(port, () => {
   console.log("App is running on port " + port);
