@@ -20,11 +20,6 @@ const Available = new mongoose.Schema({
         type: [Number],
         required: true,
     },
-    credits: {
-        type: Number,
-        required: true,
-        default: 0,
-    }
 });
 
 const AvailableModel = mongoose.model('Available', Available);

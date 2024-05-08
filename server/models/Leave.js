@@ -6,11 +6,21 @@ const Leave = new mongoose.Schema({
         ref: 'User', 
         required: true,
     },
-    date: {
+    startDate: {
         type: Date,
         required: true,
         get: v => v.toISOString().split('T')[0],
         set: v => v
+    },
+    endDate: {
+        type: Date,
+        required: true,
+        get: v => v.toISOString().split('T')[0],
+        set: v => v
+    },
+    status: {
+        type: String,
+        enum : ['pending', 'approved', 'rejected']
     },
     
 });
