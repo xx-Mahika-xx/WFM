@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 
 const Job = require('../models/Job'); 
 const Available = require('../models/Available');
+const LeaveModel = require('../models/Leave');
+const { updateCredits } = require('./creditManager');
 
 async function fetchAttendanceWithFilters({ date, department}) {
     try {
@@ -9,7 +11,8 @@ async function fetchAttendanceWithFilters({ date, department}) {
             {
                 $match: {
                     date: new Date(date),
-                    department: department
+                    department: department,
+                    status: { $ne: "onleave" }
                 }
             },
             {
@@ -55,19 +58,24 @@ async function fetchAvailableEmployeesWithFilters({date, department, slot}){
           },
           {
             $addFields: {
-                "username": "$userDetails.username"
+                "username": "$userDetails.username",
+                "credits" : "$userDetails.credits"
             }
           },
           {
               $project: {
                   _id: 0,
                   slot: 1,
-                  credits: 1,
                   employeeId: 1,
+                  "credits": 1,
                   "username":1
               }
-          }
-           
+          },
+          {
+                $sort: {
+                    "credits": 1 
+                }
+            }
           ];
         const result = await Available.aggregate(pipeline); 
         return result;
@@ -79,5 +87,63 @@ async function fetchAvailableEmployeesWithFilters({date, department, slot}){
     }
 };
 
-module.exports = { fetchAttendanceWithFilters, fetchAvailableEmployeesWithFilters };
+async function fetchLeaveData({status}){
+    try {
+        const pipeline = [];
+        if (status !== undefined && status !== null) {
+            pipeline.push({
+                $match: {
+                    status: status,
+                }
+            });
+        }
+        if (pipeline.length === 0) {
+            return await LeaveModel.find();
+        }
+        return await LeaveModel.aggregate(pipeline); 
+    } catch (error) {
+        console.error('Error fetching data with filters:', error);
+        throw error;
+    }
+};
+
+async function changeLeaveStatus({leaveId, toStatus}){
+    try {
+        const updatedLeave = await LeaveModel.findByIdAndUpdate(
+            leaveId,
+            { status: toStatus },
+            { new: true } // To return the updated document
+        );
+
+        if (!updatedLeave) {
+            throw new Error("Leave entry not found");
+        }
+
+        return updatedLeave;
+    } catch (error) {
+        console.error('Error approving/rejecting leave:', error);
+        throw error;
+    }
+};
+
+
+async function changeJobStatus({employeeId, startDate, endDate, status}){
+    try {
+        const updatedJobs = await Job.updateMany(
+            {
+                employeeId: employeeId,
+                date: { $gte: startDate, $lte: endDate }
+            },
+            { status: status }
+        );
+        await updateCredits({credits : (-1 * updatedJobs.nModified), employeeId});
+
+    } catch (error) {
+        console.error('Error approving/rejecting leave:', error);
+        throw error;
+    }
+};
+
+
+module.exports = { fetchAttendanceWithFilters, fetchAvailableEmployeesWithFilters, fetchLeaveData, changeLeaveStatus, changeJobStatus };
 

@@ -26,6 +26,10 @@ const User = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
+	credits: {
+		type: Number,
+		default: 0,
+	}
 });
 
 const UserModel = mongoose.model('User', User);

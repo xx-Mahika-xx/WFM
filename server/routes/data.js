@@ -2,23 +2,44 @@ const express = require('express');
 const router = express.Router();
 const Job = require('../models/Job');
 const Available = require('../models/Available');
-const { fetchAttendanceWithFilters, fetchAvailableEmployeesWithFilters } = require('../utils/jobhelper');
+const { fetchAttendanceWithFilters, fetchAvailableEmployeesWithFilters, fetchLeaveData, changeLeaveStatus, changeJobStatus } = require('../utils/jobhelper');
+const LeaveModel = require('../models/Leave');
+const { updateCredits } = require('../utils/creditManager');
 
 
-router.post('/add-data', async(req, res) => {
-    const {employeeId, department, date, slot, status}  = req.body;
+// Define a function to create a new job entry
+const createJobEntry = async (req, res) => {
+    const { employeeId, department, date, slot, status } = req.body;
     const newEntryData = {
         employeeId,
         department,
         date,
         slot,
         status,
-    }
-    const newEntry = await Job.create(newEntryData);
-    console.log(newEntry);
+    };
 
-    return res.status(200);
+    try {
+        const newEntry = await Job.create(newEntryData);
+        console.log(newEntry);
+        return res.status(200).json({ success: true, data: newEntry });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+};
+
+// API endpoint for adding job data
+router.post('/add-data', async (req, res) => {
+    createJobEntry(req, res);
 });
+
+// API endpoint for assigning an employee
+router.post('/assign-employee', async (req, res) => {
+    createJobEntry(req, res);
+    const {employeeId} = req.body;
+    await updateCredits({credits: 1, employeeId});
+});
+
 
 router.post('/add-all-data', async (req, res) => {
     const entries = req.body; // Assuming req.body is an array of entry objects
@@ -32,7 +53,6 @@ router.post('/add-all-data', async (req, res) => {
             slot,
             status,
         };
-
         
         const newEntry = await Job.create(newEntryData);
         newEntries.push(newEntry);
@@ -43,7 +63,7 @@ router.post('/add-all-data', async (req, res) => {
     return res.status(200).json({ message: "Entries added successfully" });
 });
 
-
+// get the attendance slotwise, datewise and by department
 router.get('/getattendance', async (req, res) => {
     try {
         let { date, department } = req.body;
@@ -63,6 +83,7 @@ router.get('/getattendance', async (req, res) => {
     }
 });
 
+// get employees available for working in specific department, slot and date
 router.get('/get-available-employees', async (req, res) => {
     try {
         let { date, department, slot } = req.body;
@@ -74,20 +95,59 @@ router.get('/get-available-employees', async (req, res) => {
     }
 });
 
+// employee will add preference for working
 router.post('/add-availability', async (req,res) => {
-    const {employeeId, date, department, slot, credits} = req.body;
+    const {employeeId, date, department, slot} = req.body;
     const newEntryData =  {
         employeeId, 
         date, 
         department, 
-        slot, 
-        credits
+        slot
     }
     const newEntry = await Available.create(newEntryData);
-    console.log(newEntry);
     return res.status(200);
 });
 
+// apply for leave using this api
+router.post('/apply-for-leave', async (req, res) =>{
+    const {employeeId, startDate, endDate} = req.body;
+    const status = "pending"; 
+    const newEntryData = {
+        employeeId,
+        startDate,
+        endDate,
+        status
+    }
+    const newEntry = await LeaveModel.create(newEntryData);
+    return res.status(200);
+});
+
+// to fetch the leave application data
+router.get('/get-leave-data', async (req,res) => {
+    try {
+        let { status } = req.body;
+        if (status === undefined) {
+            status = null;
+        }
+        const result = await fetchLeaveData({status});
+        return res.json({ success: true,  data: result });
+    } catch (error) {
+        console.error('Error fetching LeaveData:', error);
+        res.status(500).json({ success: false, error: 'Error fetching LeaveData' });
+    }
+});
+
+// use this api to approve or reject leave application
+router.post('/change-leave-status', async (req, res) => {
+    const {leaveId, employeeId, startDate, endDate, toStatus} = req.body;
+    const result = await changeLeaveStatus({leaveId, toStatus});
+    if(toStatus === "approved"){
+        const jobStatus  = "onleave";
+        const result2 = await changeJobStatus({employeeId, startDate, endDate, status: jobStatus});
+    }
+    return res.status(200);
+
+});
 
 
 module.exports = router;
