@@ -18,6 +18,10 @@ const Leave = new mongoose.Schema({
         get: v => v.toISOString().split('T')[0],
         set: v => v
     },
+    leaveType: {
+        type: String,
+        enum: ['sick', 'casual', 'paid']
+    },
     status: {
         type: String,
         enum : ['pending', 'approved', 'rejected']

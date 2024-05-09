@@ -5,6 +5,7 @@ const Available = require('../models/Available');
 const { fetchAttendanceWithFilters, fetchAvailableEmployeesWithFilters, fetchLeaveData, changeLeaveStatus, changeJobStatus } = require('../utils/jobhelper');
 const LeaveModel = require('../models/Leave');
 const { updateCredits } = require('../utils/creditManager');
+const RequirementModel = require('../models/requirement');
 
 
 // Define a function to create a new job entry
@@ -96,26 +97,41 @@ router.get('/get-available-employees', async (req, res) => {
 });
 
 // employee will add preference for working
-router.post('/add-availability', async (req,res) => {
-    const {employeeId, date, department, slot} = req.body;
-    const newEntryData =  {
-        employeeId, 
-        date, 
-        department, 
-        slot
+router.post('/add-availability', async (req, res) => {
+    const { employeeId, startDate, endDate, department, slot } = req.body;
+    
+    // Convert start and end date strings to JavaScript Date objects
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Array to hold all created entries
+    const createdEntries = [];
+
+    for (let currentDate = new Date(start); currentDate <= end; currentDate.setDate(currentDate.getDate() + 1)) {
+        const newEntryData = {
+            employeeId,
+            date: new Date(currentDate),
+            department,
+            slot
+        };
+
+        const newEntry = await Available.create(newEntryData);
+        createdEntries.push(newEntry);
     }
-    const newEntry = await Available.create(newEntryData);
-    return res.status(200);
+
+    return res.status(200).json({ createdEntries });
 });
+
 
 // apply for leave using this api
 router.post('/apply-for-leave', async (req, res) =>{
-    const {employeeId, startDate, endDate} = req.body;
+    const {employeeId, startDate, endDate, leavetype} = req.body;
     const status = "pending"; 
     const newEntryData = {
         employeeId,
         startDate,
         endDate,
+        leaveType,
         status
     }
     const newEntry = await LeaveModel.create(newEntryData);
@@ -149,5 +165,17 @@ router.post('/change-leave-status', async (req, res) => {
 
 });
 
+router.post('/add-requirement', async (req,res) =>{
+    const {date, department, slot, requirement} = req.body;
+    const newEntryData = {
+        date,
+        department,
+        slot,
+        requirement
+    }
+    const newEntry = await RequirementModel.create(newEntryData);
+    return res.status(200);
+    
+});
 
 module.exports = router;

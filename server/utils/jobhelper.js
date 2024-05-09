@@ -4,10 +4,12 @@ const Job = require('../models/Job');
 const Available = require('../models/Available');
 const LeaveModel = require('../models/Leave');
 const { updateCredits } = require('./creditManager');
+const RequirementModel = require('../models/requirement');
 
-async function fetchAttendanceWithFilters({ date, department}) {
+
+async function fetchAttendanceWithFilters({ date, department }) {
     try {
-        const pipeline = [
+        const pipeline1 = [
             {
                 $match: {
                     date: new Date(date),
@@ -16,18 +18,53 @@ async function fetchAttendanceWithFilters({ date, department}) {
                 }
             },
             {
-                $unwind: "$slot" 
+                $unwind: "$slot"
             },
             {
                 $group: {
                     _id: "$slot",
                     count: { $sum: 1 }
                 }
-            } 
+            }
         ];
 
-        const result = await Job.aggregate(pipeline); 
-        return result;
+        const pipeline2 = [
+            {
+                $match: {
+                    date: new Date(date),
+                    department: department
+                }
+            },
+            {
+                $unwind: "$slot"
+            },
+            {
+                $group: {
+                    _id: "$slot",
+                    requirement: { $first: "$Requirement" } // Fetching the single value for each slot
+                }
+            }
+        ];
+
+        const [result1, result2] = await Promise.all([
+            Job.aggregate(pipeline1),
+            RequirementModel.aggregate(pipeline2)
+        ]);
+
+        // Create a map for faster lookup
+        const result2Map = new Map(result2.map(item => [item._id, item.requirement]));
+
+        // Combine results from both pipelines
+        const combinedResult = result1.map(item => {
+            const requirement = result2Map.get(item._id); // Get additional data for the slot
+            return {
+                slot: item._id,
+                count: item.count,
+                requirement: requirement !== undefined ? requirement : 50 // Ensure null if no requirement found
+            };
+        });
+
+        return combinedResult;
     } catch (error) {
         console.error('Error fetching data with filters:', error);
         throw error;
