@@ -16,6 +16,9 @@ const Available = new mongoose.Schema({
         type: String,
         required: true,
     },
+    unit: {
+        type: String,
+    },
     slot: {
         type: [Number],
         required: true,

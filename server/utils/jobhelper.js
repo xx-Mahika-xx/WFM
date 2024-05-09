@@ -7,23 +7,15 @@ const { updateCredits } = require('./creditManager');
 const RequirementModel = require('../models/requirement');
 
 
-async function fetchAttendanceWithFilters({ date, department }) {
+async function fetchAttendanceWithFilters({ date, department, unit }) {
     try {
+        
         const pipeline1 = [
             {
                 $match: {
                     date: new Date(date),
                     department: department,
                     status: { $ne: "onleave" }
-                }
-            },
-            {
-                $unwind: "$slot"
-            },
-            {
-                $group: {
-                    _id: "$slot",
-                    count: { $sum: 1 }
                 }
             }
         ];
@@ -34,7 +26,28 @@ async function fetchAttendanceWithFilters({ date, department }) {
                     date: new Date(date),
                     department: department
                 }
+            }
+        ];
+
+        // Conditionally add the unit match stage
+        if (unit !== undefined && unit !== null) {
+            pipeline1[0].$match.unit = unit;
+            pipeline2[0].$match.unit = unit;
+        }
+
+        pipeline1.push(
+            {
+                $unwind: "$slot"
             },
+            {
+                $group: {
+                    _id: "$slot",
+                    count: { $sum: 1 }
+                }
+            }
+        );
+
+        pipeline2.push(
             {
                 $unwind: "$slot"
             },
@@ -44,7 +57,7 @@ async function fetchAttendanceWithFilters({ date, department }) {
                     requirement: { $first: "$Requirement" } // Fetching the single value for each slot
                 }
             }
-        ];
+        );
 
         const [result1, result2] = await Promise.all([
             Job.aggregate(pipeline1),
@@ -74,46 +87,54 @@ async function fetchAttendanceWithFilters({ date, department }) {
 
 async function fetchAvailableEmployeesWithFilters({date, department, slot}){
     try {
-        const pipeline = [
-            {
-              $match: {
+        const pipeline = [];
+
+        // Match stage to filter by department, date, and slot
+        const matchStage = {
+            $match: {
                 department: department,
                 date: new Date(date),
                 slot: slot
-              }
+            }
+        };
+
+        
+        pipeline.push(matchStage);
+
+        pipeline.push(
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "employeeId",
+                    foreignField: "_id",
+                    as: "userDetails"
+                }
             },
             {
-              $lookup: {
-                  from: "users",
-                  localField: "employeeId",
-                  foreignField: "_id",
-                  as: "userDetails"
-              }
-          },
-          {
-              $unwind: "$userDetails"
-          },
-          {
-            $addFields: {
-                "username": "$userDetails.username",
-                "credits" : "$userDetails.credits"
-            }
-          },
-          {
-              $project: {
-                  _id: 0,
-                  slot: 1,
-                  employeeId: 1,
-                  "credits": 1,
-                  "username":1
-              }
-          },
-          {
+                $unwind: "$userDetails"
+            },
+            {
+                $addFields: {
+                    "username": "$userDetails.username",
+                    "credits": "$userDetails.credits"
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    slot: 1,
+                    employeeId: 1,
+                    "credits": 1,
+                    "username": 1
+                }
+            },
+            {
                 $sort: {
-                    "credits": 1 
+                    "credits": 1
                 }
             }
-          ];
+        );
+
         const result = await Available.aggregate(pipeline); 
         return result;
             
