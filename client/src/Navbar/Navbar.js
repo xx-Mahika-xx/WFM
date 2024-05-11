@@ -1,26 +1,29 @@
-import React from 'react'
+import React from "react";
 import { Link } from "react-router-dom";
 
 const Navbar = () => {
   return (
-    <div className="text-white text-xl mt-3">
-      <Link to={"/home"} className="pr-10 text-white">
+    <div className="text-black text-xl mt-3 flex justify-center">
+      <Link
+        to={"/home"}
+        className="px-4 py-2 mx-2 rounded hover:bg-blue-600 hover:text-white transition duration-300"
+      >
         Home
       </Link>
-      {/* <Link
-        to={"/staffdashboard"}
-        className="pr-10 text-color6 active:text-white"
+      <Link
+        to={"/past"}
+        className="px-4 py-2 mx-2 rounded hover:bg-blue-600 hover:text-white transition duration-300"
       >
-        Dashboard
-      </Link> */}
-      <Link to={"/home"} className="pr-10 text-color6 active:text-white">
         Past
       </Link>
-      <Link to={"/home"} className="text-color6 active:text-white">
+      <Link
+        to={"/about"}
+        className="px-4 py-2 mx-2 rounded hover:bg-blue-600 hover:text-white transition duration-300"
+      >
         About
       </Link>
     </div>
   );
-}
+};
 
-export default Navbar
+export default Navbar;

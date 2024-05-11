@@ -33,3 +33,4 @@ const Job = new mongoose.Schema({
 const JobModel = mongoose.model('Job', Job);
 
 module.exports = JobModel;
+// Employee work timings

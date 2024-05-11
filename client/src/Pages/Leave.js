@@ -1,19 +1,59 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const Leave = () => {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [reason, setReason] = useState("");
-  const [casualLeave, setCasualLeave] = useState(5);
-  const [paidLeave, setPaidLeave] = useState(10);
-  const [sickLeave, setSickLeave] = useState(7);
+  const [leaveType, setLeaveType] = useState(""); // Default to Casual Leave
+  const [casualLeave, setCasualLeave] = useState(0);
+  const [paidLeave, setPaidLeave] = useState(0);
+  const [sickLeave, setSickLeave] = useState(0);
+
+  const [successMessage, setSuccessMessage] = useState("");
+
+  useEffect(() => {
+    // Fetch leave data from the backend upon component mount
+    fetchLeaveData();
+  }, []);
+
+  const fetchLeaveData = () => {
+    // Simulate fetching leave data from the backend
+    // Replace this with your actual API call to get leave data from the backend
+    axios
+      .get("your-backend-leave-data-endpoint")
+      .then((response) => {
+        const { casual, paid, sick } = response.data;
+        setCasualLeave(casual);
+        setPaidLeave(paid);
+        setSickLeave(sick);
+      })
+      .catch((error) => {
+        console.error("Error fetching leave data:", error);
+      });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Here you can handle form submission, such as sending the data to a server or performing validation
-    console.log("From Date:", fromDate);
-    console.log("To Date:", toDate);
-    console.log("Reason:", reason);
+    // Prepare data to send to the backend
+    const formData = {
+      fromDate,
+      toDate,
+      reason,
+      leaveType,
+    };
+    // Send data to the backend
+    axios
+      .post("your-backend-endpoint", formData)
+      .then((response) => {
+        // Handle success response
+        setSuccessMessage("Leave application submitted successfully.");
+        // Update leave data after successful submission
+        fetchLeaveData();
+      })
+      .catch((error) => {
+        console.error("Error submitting leave application:", error);
+      });
   };
 
   return (
@@ -69,6 +109,25 @@ const Leave = () => {
             onChange={(e) => setReason(e.target.value)}
             required
           ></textarea>
+        </div>
+        <div className="mb-4">
+          <label
+            htmlFor="leaveType"
+            className="block mb-1 font-semibold text-gray-800"
+          >
+            Leave Type
+          </label>
+          <select
+            id="leaveType"
+            className="w-full border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-blue-400"
+            value={leaveType}
+            onChange={(e) => setLeaveType(e.target.value)}
+            required
+          >
+            <option value="Casual">Casual Leave</option>
+            <option value="Paid">Paid Leave</option>
+            <option value="Sick">Sick Leave</option>
+          </select>
         </div>
         <div className="mb-4">
           <p className="font-semibold mb-1 text-gray-800">Remaining Leaves:</p>

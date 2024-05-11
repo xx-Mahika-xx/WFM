@@ -3,6 +3,7 @@ import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import Papa from "papaparse"; // CSV parsing library
 import Data from "../data.csv";
+import axios from "axios";
 
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
@@ -11,8 +12,10 @@ const localizer = momentLocalizer(moment);
 
 const ReactBigCalendar = () => {
   const [events, setEvents] = useState([]);
-  const [workTimings, setWorkTimings] = useState("");
   const [selectedWorkTimings, setSelectedWorkTimings] = useState("");
+  const [selectedWorkTimingsDate, setSelectedWorkTimingsDate] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -83,36 +86,131 @@ const ReactBigCalendar = () => {
   }, []);
 
   const handleWorkTimingsChange = (e) => {
-    setWorkTimings(e.target.value);
+    setSelectedWorkTimings(e.target.value);
+  };
+
+  const handleWorkTimingsChangeDate = (e) => {
+    setSelectedWorkTimingsDate(e.target.value);
+  };
+
+  // Function to handle change in the start date input
+  const handleStartDateChange = (event) => {
+    setStartDate(event.target.value);
+  };
+
+  // Function to handle change in the end date input
+  const handleEndDateChange = (event) => {
+    setEndDate(event.target.value);
+  };
+
+  //Api for sending all data 
+  const sendDataToBackend = () => {
+    // Create an object containing all the data
+    const formData = {
+      selectedWorkTimingsDate,
+      startDate,
+      endDate,
+    };
+    console.log(formData);
+
+    // Send formData to your backend endpoint using Axios
+    axios
+      .post("/add-availability", formData)
+      .then((response) => {
+        // Handle response from the backend if needed
+        console.log("Data sent successfully:", response.data);
+      })
+      .catch((error) => {
+        console.error("Error sending data:", error);
+      });
+  };
+
+  // //Api for sending data of only timings
+  // const handleUpdateWorkTimings = () => {
+  //   axios
+  //     .post("your-backend-endpoint", selectedWorkTimings)
+  //     .then((response) => {
+  //       // Handle response from the backend if needed
+  //       console.log("Data sent successfully:", response.data);
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error sending data:", error);
+  //     });
+  // };
+
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    let month = today.getMonth() + 1;
+    let day = today.getDate();
+    month = month < 10 ? "0" + month : month;
+    day = day < 10 ? "0" + day : day;
+    return `${year}-${month}-${day}`;
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen py-8 px-4">
-      <div className="max-w-3xl mx-auto bg-white p-6 rounded-md shadow-md mb-8">
+    <div>
+      <div className="max-w-3xl mx-auto bg-white p-6 rounded-md shadow-lg mb-8">
         <h2 className="text-xl font-semibold mb-4">Preferred Work Timings</h2>
-        <div className="flex items-center mb-4">
-          <label htmlFor="workTimings" className="mr-4 font-semibold">
-            Select preferred timings:
-          </label>
-          <select
-            id="workTimings"
-            className="border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:border-blue-400"
-            value={selectedWorkTimings}
-            onChange={handleWorkTimingsChange}
+        {/* Second Row */}
+        {/* Row - Select Timings and Dates */}
+        <div className="flex flex-col md:flex-row items-center mb-4">
+          <div className="flex flex-col mr-0 md:mr-8 mb-4 md:mb-0">
+            <label htmlFor="workTimings" className="font-semibold mb-2">
+              Select preferred timings:
+            </label>
+            <select
+              id="workTimings"
+              className="border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:border-blue-400"
+              value={selectedWorkTimingsDate}
+              onChange={handleWorkTimingsChangeDate}
+            >
+              <option value="">Select</option>
+              <option value="0-4">00:00 - 04:00</option>
+              <option value="4-8">04:00 - 08:00</option>
+              <option value="8-12">08:00 - 12:00</option>
+              <option value="12-16">12:00 - 16:00</option>
+              <option value="16-20">16:00 - 20:00</option>
+              <option value="20-0">20:00 - 00:00</option>
+            </select>
+          </div>
+          <div className="flex flex-col">
+            <label htmlFor="startDate" className="font-semibold mb-2">
+              Select start date:
+            </label>
+            <input
+              type="date"
+              id="startDate"
+              className="border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:border-blue-400"
+              value={startDate}
+              onChange={handleStartDateChange}
+              min={getTodayDate()}
+              // Add necessary state or props for value and onChange
+            />
+          </div>
+          <div className="flex flex-col ml-0 md:ml-8">
+            <label htmlFor="endDate" className="font-semibold mb-2">
+              Select end date:
+            </label>
+            <input
+              type="date"
+              id="endDate"
+              className="border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:border-blue-400"
+              value={endDate}
+              onChange={handleEndDateChange}
+              min={startDate || getTodayDate()}
+              // Add necessary state or props for value and onChange
+            />
+          </div>
+          <button
+            className="ml-0 md:ml-8 mt-4 md:mt-8 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none"
+            onClick={sendDataToBackend}
           >
-            <option value="">Select</option>
-            <option value="Morning">00:00 - 04:00</option>
-            <option value="Morning">04:00 - 08:00</option>
-            <option value="Morning">08:00 - 12:00</option>
-            <option value="Morning">12:00 - 16:00</option>
-            <option value="Morning">16:00 - 20:00</option>
-            <option value="Morning">20:00 - 00:00</option>
-          </select>
-          <button className="ml-4 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none">
             Update
           </button>
         </div>
       </div>
+
       <div className="bg-white p-4 rounded-md shadow-md">
         <Calendar
           views={["day", "agenda", "week"]}

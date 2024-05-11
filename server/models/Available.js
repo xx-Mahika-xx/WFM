@@ -28,3 +28,4 @@ const Available = new mongoose.Schema({
 const AvailableModel = mongoose.model('Available', Available);
 
 module.exports = AvailableModel;
+// Employees available at a particular time

@@ -1,8 +1,9 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useCookies } from "react-cookie";
+import { Link, useNavigate } from "react-router-dom";
 import TextInput from "../components/TextInput";
 import PasswordInput from "../components/PasswordInput";
-import { Link, useNavigate } from "react-router-dom";
+import Navbar from "../Navbar/Navbar";
 import { makeUnauthenticatedPOSTRequest } from "../utils/serverHelper";
 
 const SignupComponent = () => {
@@ -71,110 +72,86 @@ const SignupComponent = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col items-center bg-app-black text-white overflow-auto">
+    <div
+      className="w-full h-full flex flex-col items-center text-black overflow-auto"
+      style={{ backgroundColor: "#FFF2E1" }}
+    >
+      <div
+        className="navbar-container"
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          marginTop: "20px",
+        }}
+      >
+        <Navbar />
+      </div>
       <div className="logo p-5 border-b border-solid border-gray-300 w-full flex justify-center"></div>
-      <div className="inputRegion w-1/3 py-10 flex items-center justify-center flex-col">
-        {alertMessage && (
-          <div
-            className={`${
-              alertType === "success"
-                ? "bg-green-100 border-green-500"
-                : "bg-red-100 border-red-500"
-            } border-t-4 rounded-b text-${
-              alertType === "success" ? "green" : "red"
-            }-900 px-4 py-3 shadow-md mb-6`}
-            role="alert"
-          >
-            <div className="flex">
-              <div className="py-1">
-                <svg
-                  className={`fill-current h-6 w-6 text-${
-                    alertType === "success" ? "green" : "red"
-                  }-500 mr-4`}
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                >
-                  <path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z" />
-                </svg>
-              </div>
-              <div>
-                <p className="font-bold">{alertMessage}</p>
-              </div>
-            </div>
+      <div className="inputRegion w-full max-w-lg py-10 flex flex-col items-center justify-center">
+        <div className="font-bold mb-8 text-3xl">
+          Sign up for free to start applying
+        </div>
+        <div className="w-full space-y-6">
+          <TextInput
+            label="Email address"
+            placeholder="Enter your email"
+            value={email}
+            setValue={setEmail}
+            type="email"
+          />
+          <TextInput
+            label="Confirm Email Address"
+            placeholder="Enter your email again"
+            value={confirmEmail}
+            setValue={setConfirmEmail}
+            type="email"
+          />
+          <TextInput
+            label="Username"
+            placeholder="Enter your username"
+            value={username}
+            setValue={setUsername}
+            type="text"
+          />
+          <PasswordInput
+            label="Create Password"
+            placeholder="Enter a strong password here"
+            value={password}
+            setValue={setPassword}
+          />
+          <div className="flex flex-col md:flex-row w-full space-y-4 md:space-y-0 md:space-x-4">
+            <TextInput
+              label="First Name"
+              placeholder="Enter Your First Name"
+              value={firstName}
+              setValue={setFirstName}
+              type="text"
+            />
+            <TextInput
+              label="Last Name"
+              placeholder="Enter Your Last Name"
+              value={lastName}
+              setValue={setLastName}
+              type="text"
+            />
           </div>
-        )}
-        <div className="font-bold mb-4 text-2xl">
-          Sign up for free to start applying.
         </div>
-        <TextInput
-          label="Email address"
-          placeholder="Enter your email"
-          className="my-6"
-          value={email}
-          setValue={setEmail}
-          type="email"
-        />
-        <TextInput
-          label="Confirm Email Address"
-          placeholder="Enter your email again"
-          className="mb-6"
-          value={confirmEmail}
-          setValue={setConfirmEmail}
-          type="text"
-        />
-        <TextInput
-          label="Username"
-          placeholder="Enter your username"
-          className="mb-6"
-          value={username}
-          setValue={setUsername}
-          type="text"
-        />
-        <PasswordInput
-          label="Create Password"
-          placeholder="Enter a strong password here"
-          value={password}
-          setValue={setPassword}
-        />
-        <div className="w-full flex justify-between items-center space-x-8">
-          <TextInput
-            label="First Name"
-            placeholder="Enter Your First Name"
-            className="mt-6"
-            value={firstName}
-            setValue={setFirstName}
-            type="text"
-          />
-          <TextInput
-            label="Last Name"
-            placeholder="Enter Your Last Name"
-            className="mt-6"
-            value={lastName}
-            setValue={setLastName}
-            type="text"
-          />
-        </div>
-        <div className=" w-full flex items-center justify-center mb-5">
+        <div className="w-full border border-solid border-gray-300 my-8"></div>
+        <div className="flex justify-center">
           <button
-            className="flex items-center justify-center rounded-full font-semibold bg-gradient-to-r from-blue-400 to-blue-600 p-3 px-10 mt-6"
-            onClick={(e) => {
-              e.preventDefault();
-              signUp();
-            }}
+            className="px-8 py-3 rounded-full font-semibold bg-gradient-to-r from-blue-400 to-blue-600 text-white shadow-md hover:shadow-lg transition duration-300 ease-in-out"
+            onClick={signUp}
           >
             Sign Up
           </button>
         </div>
-        <div className="w-full border border-solid border-gray-300"></div>
-        <div className="my-6 font-semibold text-lg">
-          Already have an account?
+        <div className="text-lg mt-6">
+          Already have an account?{" "}
+          <Link to="/login" className="text-blue-500 hover:underline">
+            Log in instead
+          </Link>
         </div>
-        <Link
-          to="/login"
-          className="border border-gray-500 text-gray-500 w-full flex items-center justify-center py-4 rounded-full font-bold"
-        >
-          <div>LOG IN INSTEAD</div>
-        </Link>
       </div>
     </div>
   );
