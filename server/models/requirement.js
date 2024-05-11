@@ -11,11 +11,14 @@ const Requirement = new mongoose.Schema({
         type: String,
         required: true,
     },
+    unit: {
+        type: String,
+    },
     slot: {
         type: Number,
         required: true,
     },
-    Requirement: {
+    requirement: {
         type: Number,
         required: true,
     },

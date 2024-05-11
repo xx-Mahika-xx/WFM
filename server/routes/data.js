@@ -10,10 +10,11 @@ const RequirementModel = require('../models/requirement');
 
 // Define a function to create a new job entry
 const createJobEntry = async (req, res) => {
-    const { employeeId, department, date, slot, status } = req.body;
+    const { employeeId, department,unit, date, slot, status } = req.body;
     const newEntryData = {
         employeeId,
         department,
+        unit,
         date,
         slot,
         status,
@@ -46,10 +47,11 @@ router.post('/add-all-data', async (req, res) => {
     const entries = req.body; // Assuming req.body is an array of entry objects
     const newEntries = [];
     for (const entry of entries) {
-        const { employeeId, department, date, slot, status } = entry;
+        const { employeeId, department,unit, date, slot, status } = entry;
         const newEntryData = {
             employeeId,
             department,
+            unit,
             date,
             slot,
             status,
@@ -67,7 +69,7 @@ router.post('/add-all-data', async (req, res) => {
 // get the attendance slotwise, datewise and by department
 router.get('/getattendance', async (req, res) => {
     try {
-        let { date, department } = req.body;
+        let { date, department, unit } = req.body;
         if (!date) {
             date = new Date();
             date.setHours(0, 0, 0, 0);
@@ -75,8 +77,8 @@ router.get('/getattendance', async (req, res) => {
         if(!department){
             department="General";
         }
-        const result = await fetchAttendanceWithFilters({date, department});
-        return res.json({ success: true, "date":date, "department":department, data: result });
+        const result = await fetchAttendanceWithFilters({date, department, unit});
+        return res.json({ success: true, "date":date, "department":department,"unit":unit, data: result });
         
     } catch (error) {
         console.error('Error fetching attendance:', error);
@@ -166,10 +168,11 @@ router.post('/change-leave-status', async (req, res) => {
 });
 
 router.post('/add-requirement', async (req,res) =>{
-    const {date, department, slot, requirement} = req.body;
+    const {date, department,unit, slot, requirement} = req.body;
     const newEntryData = {
         date,
         department,
+        unit,
         slot,
         requirement
     }
