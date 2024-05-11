@@ -6,6 +6,7 @@ const LeaveModel = require('../models/Leave');
 const { updateCredits } = require('./creditManager');
 const RequirementModel = require('../models/requirement');
 
+const MINIMUM_REQ=10;
 
 async function fetchAttendanceWithFilters({ date, department, unit }) {
     try {
@@ -54,7 +55,7 @@ async function fetchAttendanceWithFilters({ date, department, unit }) {
             {
                 $group: {
                     _id: "$slot",
-                    requirement: { $first: "$Requirement" } // Fetching the single value for each slot
+                    requirement: { $sum: "$requirement" } // Fetching the single value for each slot
                 }
             }
         );
@@ -68,14 +69,25 @@ async function fetchAttendanceWithFilters({ date, department, unit }) {
         const result2Map = new Map(result2.map(item => [item._id, item.requirement]));
 
         // Combine results from both pipelines
-        const combinedResult = result1.map(item => {
-            const requirement = result2Map.get(item._id); // Get additional data for the slot
-            return {
-                slot: item._id,
-                count: item.count,
-                requirement: requirement !== undefined ? requirement : 50 // Ensure null if no requirement found
-            };
-        });
+        const combinedResult = [];
+        for (let slot = 1; slot <= 6; slot++) {
+            const result1Item = result1.find(item => item._id === slot);
+            const requirement = result2Map.get(slot); // Get additional data for the slot
+            if (result1Item) {
+                combinedResult.push({
+                    slot: result1Item._id,
+                    count: result1Item.count,
+                    requirement: requirement !== undefined ? requirement : MINIMUM_REQ // Ensure null if no requirement found
+                });
+            } else {
+                combinedResult.push({
+                    slot: slot,
+                    count: 0,
+                    requirement: requirement !== undefined ? requirement : 0 // Set requirement to zero if not found
+                });
+            }
+        }
+
 
         return combinedResult;
     } catch (error) {
@@ -116,27 +128,25 @@ async function fetchAvailableEmployeesWithFilters({date, department, slot}){
             {
                 $addFields: {
                     "username": "$userDetails.username",
-                    "credits": "$userDetails.credits"
+                    "credits": "$userDetails.credits",
+                    "slot":slot
                 }
             },
             {
                 $project: {
                     _id: 0,
-                    slot: 1,
+                    "slot": 1,
                     employeeId: 1,
                     "credits": 1,
                     "username": 1
                 }
             },
-            {
-                $sort: {
-                    "credits": 1
-                }
-            }
         );
 
         const result = await Available.aggregate(pipeline); 
-        return result;
+        const sortedResult = result.sort((a, b) => a.credits - b.credits);
+
+        return sortedResult;
             
     }
     catch (error) {
