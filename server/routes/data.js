@@ -5,14 +5,16 @@ const Available = require('../models/Available');
 const { fetchAttendanceWithFilters, fetchAvailableEmployeesWithFilters, fetchLeaveData, changeLeaveStatus, changeJobStatus } = require('../utils/jobhelper');
 const LeaveModel = require('../models/Leave');
 const { updateCredits } = require('../utils/creditManager');
+const RequirementModel = require('../models/requirement');
 
 
 // Define a function to create a new job entry
 const createJobEntry = async (req, res) => {
-    const { employeeId, department, date, slot, status } = req.body;
+    const { employeeId, department,unit, date, slot, status } = req.body;
     const newEntryData = {
         employeeId,
         department,
+        unit,
         date,
         slot,
         status,
@@ -45,10 +47,11 @@ router.post('/add-all-data', async (req, res) => {
     const entries = req.body; // Assuming req.body is an array of entry objects
     const newEntries = [];
     for (const entry of entries) {
-        const { employeeId, department, date, slot, status } = entry;
+        const { employeeId, department,unit, date, slot, status } = entry;
         const newEntryData = {
             employeeId,
             department,
+            unit,
             date,
             slot,
             status,
@@ -66,7 +69,7 @@ router.post('/add-all-data', async (req, res) => {
 // get the attendance slotwise, datewise and by department
 router.get('/getattendance', async (req, res) => {
     try {
-        let { date, department } = req.body;
+        let { date, department, unit } = req.body;
         if (!date) {
             date = new Date();
             date.setHours(0, 0, 0, 0);
@@ -74,8 +77,8 @@ router.get('/getattendance', async (req, res) => {
         if(!department){
             department="General";
         }
-        const result = await fetchAttendanceWithFilters({date, department});
-        return res.json({ success: true, "date":date, "department":department, data: result });
+        const result = await fetchAttendanceWithFilters({date, department, unit});
+        return res.json({ success: true, "date":date, "department":department,"unit":unit, data: result });
         
     } catch (error) {
         console.error('Error fetching attendance:', error);
@@ -96,26 +99,41 @@ router.get('/get-available-employees', async (req, res) => {
 });
 
 // employee will add preference for working
-router.post('/add-availability', async (req,res) => {
-    const {employeeId, date, department, slot} = req.body;
-    const newEntryData =  {
-        employeeId, 
-        date, 
-        department, 
-        slot
+router.post('/add-availability', async (req, res) => {
+    const { employeeId, startDate, endDate, department, slot } = req.body;
+    
+    // Convert start and end date strings to JavaScript Date objects
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Array to hold all created entries
+    const createdEntries = [];
+
+    for (let currentDate = new Date(start); currentDate <= end; currentDate.setDate(currentDate.getDate() + 1)) {
+        const newEntryData = {
+            employeeId,
+            date: new Date(currentDate),
+            department,
+            slot
+        };
+
+        const newEntry = await Available.create(newEntryData);
+        createdEntries.push(newEntry);
     }
-    const newEntry = await Available.create(newEntryData);
-    return res.status(200);
+
+    return res.status(200).json({ createdEntries });
 });
+
 
 // apply for leave using this api
 router.post('/apply-for-leave', async (req, res) =>{
-    const {employeeId, startDate, endDate} = req.body;
+    const {employeeId, startDate, endDate, leavetype} = req.body;
     const status = "pending"; 
     const newEntryData = {
         employeeId,
         startDate,
         endDate,
+        leaveType,
         status
     }
     const newEntry = await LeaveModel.create(newEntryData);
@@ -149,5 +167,18 @@ router.post('/change-leave-status', async (req, res) => {
 
 });
 
+router.post('/add-requirement', async (req,res) =>{
+    const {date, department,unit, slot, requirement} = req.body;
+    const newEntryData = {
+        date,
+        department,
+        unit,
+        slot,
+        requirement
+    }
+    const newEntry = await RequirementModel.create(newEntryData);
+    return res.status(200);
+    
+});
 
 module.exports = router;

@@ -1,11 +1,6 @@
 const mongoose = require("mongoose");
 
-const Available = new mongoose.Schema({
-    employeeId: {
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'User', 
-        required: true,
-    },
+const Requirement = new mongoose.Schema({
     date: {
         type: Date,
         required: true,
@@ -20,11 +15,15 @@ const Available = new mongoose.Schema({
         type: String,
     },
     slot: {
-        type: [Number],
+        type: Number,
+        required: true,
+    },
+    requirement: {
+        type: Number,
         required: true,
     },
 });
 
-const AvailableModel = mongoose.model('Available', Available);
+const RequirementModel = mongoose.model('Requirement', Requirement);
 
-module.exports = AvailableModel;
+module.exports = RequirementModel;
