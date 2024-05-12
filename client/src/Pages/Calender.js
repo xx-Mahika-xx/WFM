@@ -6,9 +6,24 @@ import Data from "../data.csv";
 import axios from "axios";
 
 import "react-big-calendar/lib/css/react-big-calendar.css";
+axios.defaults.baseURL = 'http://localhost:8080';
 
 moment.locale("en-GB");
 const localizer = momentLocalizer(moment);
+
+function getUsernameFromCookie() {
+  const cookies = document.cookie.split(';');
+  for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      // Check if the cookie starts with 'username='
+      if (cookie.startsWith('username=')) {
+          // Extract the value after '='
+          return cookie.substring('username='.length, cookie.length);
+      }
+  }
+  // Return null if 'username' cookie is not found
+  return null;
+}
 
 const ReactBigCalendar = () => {
   const [events, setEvents] = useState([]);
@@ -106,8 +121,11 @@ const ReactBigCalendar = () => {
   //Api for sending all data 
   const sendDataToBackend = () => {
     // Create an object containing all the data
+    const username = getUsernameFromCookie();
+    const slot = selectedWorkTimingsDate;
     const formData = {
-      selectedWorkTimingsDate,
+      username,
+      slot,
       startDate,
       endDate,
     };
@@ -115,7 +133,7 @@ const ReactBigCalendar = () => {
 
     // Send formData to your backend endpoint using Axios
     axios
-      .post("/add-availability", formData)
+      .post("/data/add-availability", formData)
       .then((response) => {
         // Handle response from the backend if needed
         console.log("Data sent successfully:", response.data);
@@ -166,12 +184,12 @@ const ReactBigCalendar = () => {
               onChange={handleWorkTimingsChangeDate}
             >
               <option value="">Select</option>
-              <option value="0-4">00:00 - 04:00</option>
-              <option value="4-8">04:00 - 08:00</option>
-              <option value="8-12">08:00 - 12:00</option>
-              <option value="12-16">12:00 - 16:00</option>
-              <option value="16-20">16:00 - 20:00</option>
-              <option value="20-0">20:00 - 00:00</option>
+              <option value="1">00:00 - 04:00</option>
+              <option value="2">04:00 - 08:00</option>
+              <option value="3">08:00 - 12:00</option>
+              <option value="4">12:00 - 16:00</option>
+              <option value="5">16:00 - 20:00</option>
+              <option value="6">20:00 - 00:00</option>
             </select>
           </div>
           <div className="flex flex-col">

@@ -5,6 +5,7 @@ const Available = require('../models/Available');
 const LeaveModel = require('../models/Leave');
 const { updateCredits } = require('./creditManager');
 const RequirementModel = require('../models/requirement');
+const User = require('../models/User');
 
 const MINIMUM_REQ=10;
 
@@ -213,5 +214,40 @@ async function changeJobStatus({employeeId, startDate, endDate, status}){
 };
 
 
-module.exports = { fetchAttendanceWithFilters, fetchAvailableEmployeesWithFilters, fetchLeaveData, changeLeaveStatus, changeJobStatus };
+async function getUserInfoFromUsername({ username }) {
+    try {
+        // MongoDB query to find the user by username and retrieve their _id
+        const user = await User.findOne({ username }, { _id: 1 });
+        
+        if (user) {
+            // Retrieve the employeeId from the user document
+            const employeeId = user._id;
+            
+            // MongoDB query to find the job information based on the employeeId
+            const job = await Job.findOne({ employeeId }, { department: 1 });
+            
+            if (job) {
+                // If both user and job information are found, return the combined data
+                return {
+                    employeeId,
+                    department: job.department
+                };
+            } else {
+                // If job information is not found, return null
+                return null;
+            }
+        } else {
+            // If user with the given username is not found, return null
+            return null;
+        }
+    } catch (error) {
+        console.error("Error retrieving user info:", error);
+        return null;
+    }
+}
+
+
+
+module.exports = { fetchAttendanceWithFilters, fetchAvailableEmployeesWithFilters, 
+    fetchLeaveData, changeLeaveStatus, changeJobStatus, getUserInfoFromUsername };
 
