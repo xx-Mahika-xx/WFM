@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Job = require('../models/Job');
 const Available = require('../models/Available');
-const { fetchAttendanceWithFilters, fetchAvailableEmployeesWithFilters, fetchLeaveData, changeLeaveStatus, changeJobStatus } = require('../utils/jobhelper');
+const { fetchAttendanceWithFilters, fetchAvailableEmployeesWithFilters, fetchLeaveData, changeLeaveStatus, changeJobStatus, getUserInfoFromUsername } = require('../utils/jobhelper');
 const LeaveModel = require('../models/Leave');
 const { updateCredits } = require('../utils/creditManager');
 const RequirementModel = require('../models/requirement');
@@ -100,28 +100,45 @@ router.get('/get-available-employees', async (req, res) => {
 
 // employee will add preference for working
 router.post('/add-availability', async (req, res) => {
-    const { employeeId, startDate, endDate, department, slot } = req.body;
+    const { username, startDate, endDate, slot } = req.body;
     
+    const userInfo = await getUserInfoFromUsername({username});
+    const employeeId = userInfo.employeeId;
+    const department = userInfo.department;
     // Convert start and end date strings to JavaScript Date objects
     const start = new Date(startDate);
     const end = new Date(endDate);
 
     // Array to hold all created entries
     const createdEntries = [];
+    const updatedEntries = [];
 
     for (let currentDate = new Date(start); currentDate <= end; currentDate.setDate(currentDate.getDate() + 1)) {
-        const newEntryData = {
-            employeeId,
-            date: new Date(currentDate),
-            department,
-            slot
-        };
+        const existingEntry = await Available.findOneAndUpdate(
+            { employeeId, date: currentDate, department, slot },
+            { $set: { slot: slot } },
+            { new: true }
+        );
 
-        const newEntry = await Available.create(newEntryData);
-        createdEntries.push(newEntry);
+        if (existingEntry) {
+            updatedEntries.push(existingEntry);
+        }
+        else{
+            const newEntryData = {
+                employeeId,
+                date: new Date(currentDate),
+                department,
+                slot
+            };
+    
+            const newEntry = await Available.create(newEntryData);
+            createdEntries.push(newEntry);
+        }
     }
+    const allEntries = createdEntries.concat(updatedEntries);
+    
 
-    return res.status(200).json({ createdEntries });
+    return res.status(200).json({ allEntries });
 });
 
 
