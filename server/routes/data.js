@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Job = require('../models/Job');
 const Available = require('../models/Available');
-const { fetchAttendanceWithFilters, fetchAvailableEmployeesWithFilters, changeJobStatus, getUserInfoFromUsername, getCalenderData } = require('../utils/jobhelper');
-const {changeLeaveStatus, fetchLeaveData, getRemainingLeaveForEmployee} = require('../utils/leavehelper');
+const { fetchAttendanceWithFilters, fetchAvailableEmployeesWithFilters, changeJobStatus, getUserInfoFromUsername, getCalendarData, getUserInfoFromEmployeeId } = require('../utils/jobhelper');
+const {changeLeaveStatus, fetchLeaveData, getRemainingLeaveForEmployee, deductLeaves} = require('../utils/leavehelper');
 const LeaveModel = require('../models/Leave');
 const { updateCredits } = require('../utils/creditManager');
 const RequirementModel = require('../models/requirement');
@@ -108,14 +108,14 @@ router.post('/add-availability', async (req, res) => {
     const employeeId = userInfo.employeeId;
     const department = userInfo.department;
     // Convert start and end date strings to JavaScript Date objects
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const startLoop = new Date(startDate);
+    const endLoop = new Date(endDate);
 
     // Array to hold all created entries
     const createdEntries = [];
     const updatedEntries = [];
 
-    for (let currentDate = new Date(start); currentDate <= end; currentDate.setDate(currentDate.getDate() + 1)) {
+    for (let currentDate = new Date(startLoop); currentDate <= endLoop; currentDate.setDate(currentDate.getDate() + 1)) {
         const existingEntry = await Available.findOneAndUpdate(
             { employeeId, date: currentDate, department, slot },
             { $set: { slot: slot } },
@@ -164,19 +164,72 @@ router.post('/apply-for-leave', async (req, res) =>{
 });
 
 // to fetch the leave application data
-router.get('/get-leave-data', async (req,res) => {
+router.get('/get-leave-data', async (req, res) => {
     try {
         let { status, username } = req.query;
+        
+        // Handle undefined status
         if (status === undefined) {
             status = null;
         }
+
         let employeeId = null;
-        if(username !== undefined){
-            const userInfo = await getUserInfoFromUsername({username});
+        
+        // Fetch employeeId if username is provided
+        if (username !== undefined) {
+            const userInfo = await getUserInfoFromUsername({ username });
+            
+            // Handle user not found
+            if (!userInfo) {
+                return res.status(404).json({ success: false, error: 'User not found' });
+            }
+
             employeeId = userInfo.employeeId;
         }
-        const result = await fetchLeaveData({status, employeeId});
-        return res.json({  data: result });
+
+        // Fetch leave data based on status and employeeId
+        let leaveData = await fetchLeaveData({ status, employeeId });
+        
+        const userdata = {};
+
+        // Populate userdata with employee information
+        let dataToSend = []
+        for (let leave of leaveData) {
+
+            const user = await getUserInfoFromEmployeeId({ employeeId: leave.employeeId });
+            const userInfo = await getUserInfoFromUsername({ username: user });
+
+            // Handle user not found
+            if (!userInfo) {
+                return res.status(404).json({ success: false, error: 'User not found' });
+            }
+
+            const department = userInfo.department;
+            userdata[leave.employeeId] = {
+                name: user,
+                department: department
+            };
+            let temp = {};
+            if(leave["_doc"]){
+                temp = {
+                    ...leave["_doc"],
+                    "username" : userdata[leave.employeeId]?.name || '',
+                    "department" : userdata[leave.employeeId]?.department || '',
+                }
+            }
+            else{
+                temp = {
+                    ...leave,
+                    "username" : userdata[leave.employeeId]?.name || '',
+                    "department" : userdata[leave.employeeId]?.department || '',
+                }
+            }
+            dataToSend.push(temp);
+        }
+        console.log(dataToSend);
+        
+        // Return the result
+        return res.json({ data: dataToSend });
     } catch (error) {
         console.error('Error fetching LeaveData:', error);
         res.status(500).json({ success: false, error: 'Error fetching LeaveData' });
@@ -185,13 +238,17 @@ router.get('/get-leave-data', async (req,res) => {
 
 // use this api to approve or reject leave application
 router.post('/change-leave-status', async (req, res) => {
-    const {leaveId, username, startDate, endDate, toStatus} = req.body;
+    const {leaveId, username, toStatus} = req.body;
     const userInfo = await getUserInfoFromUsername({username});
     const employeeId = userInfo.employeeId;
     const result = await changeLeaveStatus({leaveId, toStatus});
+    console.log(result);
     if(toStatus === "approved"){
         const jobStatus  = "onleave";
-
+        const leaveType = result.leaveType;
+        await deductLeaves({employeeId, leaveType});
+        const startDate =  result.startDate;
+        const endDate =  result.endDate;
         const result2 = await changeJobStatus({employeeId, startDate, endDate, status: jobStatus});
     }
     return res.status(200);
@@ -244,11 +301,11 @@ router.get('/get-calendar-data-for-employee', async(req,res) => {
         let {username } = req.query;
         const userInfo = await getUserInfoFromUsername({username});
         const employeeId = userInfo.employeeId;
-        const result = await getCalenderData({employeeId});
+        const result = await getCalendarData({employeeId});
         return res.json({ success: true,  data: result });
     } catch (error) {
-        console.error('Error fetching LeaveData:', error);
-        res.status(500).json({ success: false, error: 'Error fetching LeaveData' });
+        console.error('Error fetching Calendar:', error);
+        res.status(500).json({ success: false, error: 'Error fetching Calendar Data' });
     }
 });
 

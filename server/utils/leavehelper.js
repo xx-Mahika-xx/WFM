@@ -41,7 +41,7 @@ async function changeLeaveStatus({leaveId, toStatus}){
         if (!updatedLeave) {
             throw new Error("Leave entry not found");
         }
-
+        console.log("updated leave",updatedLeave);
         return updatedLeave;
     } catch (error) {
         console.error('Error approving/rejecting leave:', error);
@@ -65,5 +65,24 @@ async function getRemainingLeaveForEmployee({employeeId}) {
     }
 }
 
+async function deductLeaves({employeeId, leaveType}){
+    try {
+        const columnName = `${leaveType}_leave`;
+        const result = await UserDetailModel.updateOne(
+            { _id: employeeId },
+            { $inc: { [columnName]: -1 } }
+        );
 
-module.exports = {fetchLeaveData, changeLeaveStatus, getRemainingLeaveForEmployee};
+        if (result.nModified === 0) {
+            throw new Error("No user found with the provided ID");
+        }
+
+        console.log(`${leaveType} leave deducted for employee ${employeeId}`);
+        return result;
+    } catch (error) {
+        console.error('Error deducting leaves:', error);
+        throw error;
+    }
+}
+
+module.exports = {fetchLeaveData, changeLeaveStatus, getRemainingLeaveForEmployee, deductLeaves};
