@@ -198,10 +198,106 @@ async function getUserInfoFromUsername({ username }) {
     }
 }
 
-async function getCalenderData({employeeId}){
-    
+async function getUserInfoFromEmployeeId({ employeeId}) {
+    try {
+        // MongoDB query to find the user by username and retrieve their _id
+        const user = await User.findOne({ _id: employeeId }, { username: 1 });
+        if (user) {
+            return user.username;
+        } else {
+            return null;
+        }
+    } catch (error) {
+        console.error("Error retrieving user info:", error);
+        return null;
+    }
 }
 
+async function getCalendarData({ employeeId }) {
+
+    const aggregateQuery = [
+        {
+            $match: {
+                employeeId: mongoose.Types.ObjectId(employeeId)
+            }
+        },
+        {
+            $unwind: "$slot"
+        },
+        {
+            $project: {
+                _id: 0,
+                date: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+                slot:1,
+                department: 1
+            }
+        },
+        {
+            $project: {
+                result: {
+                    $concat: [
+                        "Duty in ", "$department", ", ", "$date", "T",
+                        {
+                            $switch: {
+                                branches: [
+                                    { case: { $eq: ["$slot", 1] }, then: "00:00" },
+                                    { case: { $eq: ["$slot", 2] }, then: "04:00" },
+                                    { case: { $eq: ["$slot", 3] }, then: "08:00" },
+                                    { case: { $eq: ["$slot", 4] }, then: "12:00" },
+                                    { case: { $eq: ["$slot", 5] }, then: "16:00" },
+                                    { case: { $eq: ["$slot", 6] }, then: "20:00" }
+                                ],
+                                default: ""
+                            }
+                        },
+                        " ,","$date", "T",
+                        {
+                            $switch: {
+                                branches: [
+                                    { case: { $eq: ["$slot", 1] }, then: "04:00" },
+                                    { case: { $eq: ["$slot", 2] }, then: "08:00" },
+                                    { case: { $eq: ["$slot", 3] }, then: "12:00" },
+                                    { case: { $eq: ["$slot", 4] }, then: "16:00" },
+                                    { case: { $eq: ["$slot", 5] }, then: "20:00" },
+                                    { case: { $eq: ["$slot", 6] }, then: "24:00" }
+                                ],
+                                default: ""
+                            }
+                        },
+                    ]
+                }
+            }
+        },
+        {
+            $group: {
+                _id: null,
+                results: { $push: "$result" }
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                results: 1
+            }
+        }
+    ];
+
+    try {
+        const results = await Job.aggregate(aggregateQuery);
+        if (results.length > 0) {
+            const resultString = results[0].results.join("\n");
+            const header = "title,startTime,endTime\n";
+            return header + resultString;
+        } else {
+            return "No data found for the employee.";
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        throw error;
+    }
+}
+
+
 module.exports = { fetchAttendanceWithFilters, fetchAvailableEmployeesWithFilters, 
-    changeJobStatus, getUserInfoFromUsername, getCalenderData };
+    changeJobStatus, getUserInfoFromUsername, getCalendarData, getUserInfoFromEmployeeId };
 
