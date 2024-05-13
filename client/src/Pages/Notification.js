@@ -1,14 +1,22 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import { getUsernameFromCookie } from "../utils/userUtil";
 
 const Notification = () => {
   const [approvals, setApprovals] = useState([]);
 
   useEffect(() => {
     // Fetch data from the API using Axios
+    const userName = getUsernameFromCookie();
     axios
-      .get("your-api-endpoint")
-      .then((response) => setApprovals(response.data))
+      .get("/data/get-leave-data", {
+        params :{
+          username : userName
+        }
+      })
+      .then((response) => {
+        console.log(response.data);
+        setApprovals(response.data)})
       .catch((error) => console.error("Error fetching approvals:", error));
   }, []); // Empty dependency array ensures the effect runs only once after the initial render
 
@@ -25,7 +33,10 @@ const Notification = () => {
                 S.no
               </th>
               <th className="px-6 py-3 border-b border-gray-200 bg-gray-50">
-                Date
+                Start Date
+              </th>
+              <th className="px-6 py-3 border-b border-gray-200 bg-gray-50">
+                End Date
               </th>
               <th className="px-6 py-3 border-b border-gray-200 bg-gray-50">
                 Reason
@@ -42,7 +53,8 @@ const Notification = () => {
             {/* {approvals.map((item, index) => (
               <tr key={index} className="text-center">
                 <td className="px-6 py-4 whitespace-nowrap">{index + 1}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{item.date}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{item.startDate}</td>
+                <td className="px-6 py-4 whitespace-nowrap">{item.endDate}</td>
                 <td className="px-6 py-4 whitespace-normal">{item.reason}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{item.type}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{item.status}</td>

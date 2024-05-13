@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { backendUrl } from "../utils/config";
+import { getUsernameFromCookie } from "../utils/userUtil";
+axios.defaults.baseURL = backendUrl;
 
 const Leave = () => {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [reason, setReason] = useState("");
-  const [leaveType, setLeaveType] = useState(""); // Default to Casual Leave
+  const [leaveType, setLeaveType] = useState("casual"); // Default to Casual Leave
   const [casualLeave, setCasualLeave] = useState(0);
   const [paidLeave, setPaidLeave] = useState(0);
   const [sickLeave, setSickLeave] = useState(0);
@@ -17,16 +20,23 @@ const Leave = () => {
     fetchLeaveData();
   }, []);
 
+  const userName = getUsernameFromCookie();
   const fetchLeaveData = () => {
     // Simulate fetching leave data from the backend
     // Replace this with your actual API call to get leave data from the backend
     axios
-      .get("your-backend-leave-data-endpoint")
+      .get("/data/get-remaining-leave-for-employee",{
+        params: {
+          username: userName
+        }
+      })
       .then((response) => {
-        const { casual, paid, sick } = response.data;
-        setCasualLeave(casual);
-        setPaidLeave(paid);
-        setSickLeave(sick);
+        console.log(response.data);
+
+        const { casual_leave, paid_leave, sick_leave } = response.data;
+        setCasualLeave(casual_leave);
+        setPaidLeave(paid_leave);
+        setSickLeave(sick_leave);
       })
       .catch((error) => {
         console.error("Error fetching leave data:", error);
@@ -37,14 +47,16 @@ const Leave = () => {
     e.preventDefault();
     // Prepare data to send to the backend
     const formData = {
-      fromDate,
-      toDate,
+      startDate: fromDate,
+      endDate: toDate,
       reason,
-      leaveType,
+      leaveType: leaveType,
+      userName
     };
+    console.log(formData);
     // Send data to the backend
     axios
-      .post("your-backend-endpoint", formData)
+      .post("/data/apply-for-leave", formData)
       .then((response) => {
         // Handle success response
         setSuccessMessage("Leave application submitted successfully.");
@@ -124,9 +136,9 @@ const Leave = () => {
             onChange={(e) => setLeaveType(e.target.value)}
             required
           >
-            <option value="Casual">Casual Leave</option>
-            <option value="Paid">Paid Leave</option>
-            <option value="Sick">Sick Leave</option>
+            <option value="casual">Casual Leave</option>
+            <option value="paid">Paid Leave</option>
+            <option value="sick">Sick Leave</option>
           </select>
         </div>
         <div className="mb-4">

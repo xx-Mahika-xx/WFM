@@ -2,10 +2,10 @@ const mongoose = require('mongoose');
 
 const Job = require('../models/Job'); 
 const Available = require('../models/Available');
-const LeaveModel = require('../models/Leave');
 const { updateCredits } = require('./creditManager');
 const RequirementModel = require('../models/requirement');
 const User = require('../models/User');
+const UserDetailModel = require('../models/Userdetail');
 
 const MINIMUM_REQ=10;
 
@@ -97,7 +97,6 @@ async function fetchAttendanceWithFilters({ date, department, unit }) {
     }
 }
 
-
 async function fetchAvailableEmployeesWithFilters({date, department, slot}){
     try {
         const pipeline = [];
@@ -156,46 +155,6 @@ async function fetchAvailableEmployeesWithFilters({date, department, slot}){
     }
 };
 
-async function fetchLeaveData({status}){
-    try {
-        const pipeline = [];
-        if (status !== undefined && status !== null) {
-            pipeline.push({
-                $match: {
-                    status: status,
-                }
-            });
-        }
-        if (pipeline.length === 0) {
-            return await LeaveModel.find();
-        }
-        return await LeaveModel.aggregate(pipeline); 
-    } catch (error) {
-        console.error('Error fetching data with filters:', error);
-        throw error;
-    }
-};
-
-async function changeLeaveStatus({leaveId, toStatus}){
-    try {
-        const updatedLeave = await LeaveModel.findByIdAndUpdate(
-            leaveId,
-            { status: toStatus },
-            { new: true } // To return the updated document
-        );
-
-        if (!updatedLeave) {
-            throw new Error("Leave entry not found");
-        }
-
-        return updatedLeave;
-    } catch (error) {
-        console.error('Error approving/rejecting leave:', error);
-        throw error;
-    }
-};
-
-
 async function changeJobStatus({employeeId, startDate, endDate, status}){
     try {
         const updatedJobs = await Job.updateMany(
@@ -213,31 +172,24 @@ async function changeJobStatus({employeeId, startDate, endDate, status}){
     }
 };
 
-
 async function getUserInfoFromUsername({ username }) {
     try {
         // MongoDB query to find the user by username and retrieve their _id
         const user = await User.findOne({ username }, { _id: 1 });
         
         if (user) {
-            // Retrieve the employeeId from the user document
             const employeeId = user._id;
-            
             // MongoDB query to find the job information based on the employeeId
-            const job = await Job.findOne({ employeeId }, { department: 1 });
-            
-            if (job) {
-                // If both user and job information are found, return the combined data
+            const userdetail = await UserDetailModel.findOne({ employeeId }, { department: 1 });
+            if (userdetail) {
                 return {
                     employeeId,
-                    department: job.department
+                    department: userdetail.department
                 };
             } else {
-                // If job information is not found, return null
                 return null;
             }
         } else {
-            // If user with the given username is not found, return null
             return null;
         }
     } catch (error) {
@@ -246,8 +198,10 @@ async function getUserInfoFromUsername({ username }) {
     }
 }
 
-
+async function getCalenderData({employeeId}){
+    
+}
 
 module.exports = { fetchAttendanceWithFilters, fetchAvailableEmployeesWithFilters, 
-    fetchLeaveData, changeLeaveStatus, changeJobStatus, getUserInfoFromUsername };
+    changeJobStatus, getUserInfoFromUsername, getCalenderData };
 

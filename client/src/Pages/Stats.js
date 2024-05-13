@@ -166,6 +166,12 @@ const Stats = () => {
         "Endocrinology Unit",
       ]);
     }
+      else if (selectedDepartment === "General") {
+        setUnitOptions([
+          "A",
+          "B",
+        ]);
+    }
   };
 
   // State variable to store selected employees
@@ -218,6 +224,7 @@ const Stats = () => {
             </option>
             <option value="Emergency Medicine">Emergency Medicine</option>
             <option value="Internal Medicine">Internal Medicine</option>
+            <option value="General">General</option>
           </select>
         </div>
         <div>
