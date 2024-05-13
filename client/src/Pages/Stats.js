@@ -176,6 +176,24 @@ const Stats = () => {
 
   // State variable to store selected employees
   const [selectedEmployees, setSelectedEmployees] = useState([]);
+  const [optionsEmployee, setOptionsEmployee] = useState([]);
+  // State variable to track loading state
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch options from the backend when the component mounts
+    const fetchOptions = async () => {
+      try {
+        const response = await axios.get("your-backend-options-endpoint");
+        setOptionsEmployee(response.data); // Update options state with fetched data
+        setLoading(false); // Update loading state to indicate options are loaded
+      } catch (error) {
+        console.error("Error fetching options:", error);
+      }
+    };
+
+    fetchOptions(); // Call fetchOptions function when component mounts
+  }, []);
 
   // Function to handle employee selection/deselection
   const handleEmployeeSelect = (selectedList, selectedItem) => {
@@ -338,39 +356,31 @@ const Stats = () => {
             <h2 className="text-xl font-semibold mb-4 text-center">
               Job Scheduling
             </h2>
-            <div
-              className="flex items-center mb-4"
-              style={{ minHeight: "200px" }}
-            >
-              <label className="pr-4 text-right mr-2">Employee:</label>
-              <Multiselect
-                style={{
-                  chips: {
-                    background: "#A1E3D8",
-                  },
-                  multiselectContainer: {
-                    color: "#A1E3D8",
-                  },
-                  searchBox: {
-                    border: "none",
-                    "border-bottom": "1px solid blue",
-                    "border-radius": "0px",
-                  },
-                }}
-                isObject={false}
-                onKeyPressFn={function noRefCheck() {}}
-                onSearch={function noRefCheck() {}}
-                onSelect={handleEmployeeSelect}
-                onRemove={handleEmployeeSelect}
-                options={[
-                  "Option 1",
-                  "Option 2",
-                  "Option 3",
-                  "Option 4",
-                  "Option 5",
-                ]}
-              />
-            </div>
+            {loading ? ( // Display loading indicator while options are being fetched
+              <p>Loading options...</p>
+            ) : (
+              <div
+                className="flex items-center mb-4"
+                style={{ minHeight: "200px" }}
+              >
+                <label className="pr-4 text-right mr-2">Employee:</label>
+                <Multiselect
+                  style={{
+                    chips: { background: "#A1E3D8" },
+                    multiselectContainer: { color: "#A1E3D8" },
+                    searchBox: {
+                      border: "none",
+                      borderBottom: "1px solid blue",
+                      borderRadius: "0px",
+                    },
+                  }}
+                  onSelect={handleEmployeeSelect}
+                  onRemove={handleEmployeeSelect}
+                  options={options} // Pass options fetched from backend
+                  displayValue="Employee"
+                />
+              </div>
+            )}
             <div className="flex justify-center space-x-4">
               <button
                 className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
@@ -380,10 +390,7 @@ const Stats = () => {
               </button>
               <button
                 className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-                onClick={() => {
-                  // Handle cancel button click
-                  onCloseModal(); // Close the modal when Cancel is clicked
-                }}
+                onClick={onCloseModal}
               >
                 Cancel
               </button>

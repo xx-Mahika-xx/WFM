@@ -9,9 +9,9 @@ const Leave = () => {
   const [toDate, setToDate] = useState("");
   const [reason, setReason] = useState("");
   const [leaveType, setLeaveType] = useState("casual"); // Default to Casual Leave
-  const [casualLeave, setCasualLeave] = useState(0);
-  const [paidLeave, setPaidLeave] = useState(0);
-  const [sickLeave, setSickLeave] = useState(0);
+  let [casual_leave, setCasualLeave] = useState(0);
+  let [paid_leave, setPaidLeave] = useState(0);
+  let [sick_leave, setSickLeave] = useState(0);
 
   const [successMessage, setSuccessMessage] = useState("");
 
@@ -21,19 +21,17 @@ const Leave = () => {
   }, []);
 
   const userName = getUsernameFromCookie();
-  const fetchLeaveData = () => {
+  const fetchLeaveData = async () => {
     // Simulate fetching leave data from the backend
     // Replace this with your actual API call to get leave data from the backend
     axios
-      .get("/data/get-remaining-leave-for-employee",{
+      .get("/data/get-remaining-leave-for-employee", {
         params: {
-          username: userName
-        }
+          username: userName,
+        },
       })
       .then((response) => {
-        console.log(response.data);
-
-        const { casual_leave, paid_leave, sick_leave } = response.data;
+        let { casual_leave, paid_leave, sick_leave } = response.data.data;
         setCasualLeave(casual_leave);
         setPaidLeave(paid_leave);
         setSickLeave(sick_leave);
@@ -143,9 +141,9 @@ const Leave = () => {
         </div>
         <div className="mb-4">
           <p className="font-semibold mb-1 text-gray-800">Remaining Leaves:</p>
-          <p className="text-green-600">Casual Leave: {casualLeave}</p>
-          <p className="text-blue-600">Paid Leave: {paidLeave}</p>
-          <p className="text-red-600">Sick Leave: {sickLeave}</p>
+          <p className="text-green-600">Casual Leave: {casual_leave}</p>
+          <p className="text-blue-600">Paid Leave: {paid_leave}</p>
+          <p className="text-red-600">Sick Leave: {sick_leave}</p>
         </div>
         <button
           type="submit"

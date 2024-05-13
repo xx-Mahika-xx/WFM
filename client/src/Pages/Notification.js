@@ -10,13 +10,24 @@ const Notification = () => {
     const userName = getUsernameFromCookie();
     axios
       .get("/data/get-leave-data", {
-        params :{
-          username : userName
-        }
+        params: {
+          username: userName,
+        },
       })
       .then((response) => {
-        console.log(response.data);
-        setApprovals(response.data)})
+        let dataArr = [];
+        response.data.data.map((item) => {
+          dataArr.push({
+            startDate: new Date(item.startDate).toDateString(),
+            endDate: new Date(item.endDate).toDateString(),
+            reason: item.reason,
+            leaveType: item.leaveType,
+            status: item.status,
+          });
+        });
+        console.log(dataArr);
+        setApprovals(dataArr);
+      })
       .catch((error) => console.error("Error fetching approvals:", error));
   }, []); // Empty dependency array ensures the effect runs only once after the initial render
 
@@ -50,16 +61,20 @@ const Notification = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {/* {approvals.map((item, index) => (
+            {approvals.map((item, index) => (
               <tr key={index} className="text-center">
                 <td className="px-6 py-4 whitespace-nowrap">{index + 1}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{item.startDate}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {item.startDate}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">{item.endDate}</td>
                 <td className="px-6 py-4 whitespace-normal">{item.reason}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{item.type}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {item.leaveType}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">{item.status}</td>
               </tr>
-            ))} */}
+            ))}
           </tbody>
         </table>
       </div>

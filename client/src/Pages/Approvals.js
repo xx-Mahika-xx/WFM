@@ -11,18 +11,23 @@ const Approvals = () => {
     axios
       .get("/data/get-leave-data")
       .then((response) => {
-        // const arr = response.data.map(obj => ({ ...obj }));
-        console.log(Object.values(response.data));
-        setApprovals(Object.values(response.data));
-        
-        console.log(approvals);
+        let dataArr = [];
+        response.data.data.map((item) => {
+          dataArr.push({
+            name: item.name,
+            department: item.department,
+            startDate: new Date(item.startDate).toDateString(),
+            endDate: new Date(item.endDate).toDateString(),
+            reason: item.reason,
+            leaveType: item.leaveType,
+          });
+        });
+        setApprovals(dataArr);
       })
       .catch((error) => console.error("Error fetching approvals:", error));
   }, []);
 
-  const fetchApprovals = () => {
-    
-  };
+  const fetchApprovals = () => {};
 
   const handleTickClick = (id) => {
     // Send the response to the backend
@@ -72,6 +77,12 @@ const Approvals = () => {
                 Reason
               </th>
               <th className="px-6 py-3 border-b border-gray-200 bg-gray-50">
+                Leave Type
+              </th>
+              <th
+                colSpan="2"
+                className="px-6 py-3 border-b border-gray-200 bg-gray-50"
+              >
                 Actions
               </th>
             </tr>
@@ -81,11 +92,20 @@ const Approvals = () => {
               <tr key={approval.id} className="text-center">
                 <td className="px-6 py-4 whitespace-nowrap">{index + 1}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{approval.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{approval.department}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{approval.startDate}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{approval.endDate}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {approval.department}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {approval.startDate}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {approval.endDate}
+                </td>
                 <td className="px-6 py-4 whitespace-normal">
                   {approval.reason}
+                </td>
+                <td className="px-6 py-4 whitespace-normal">
+                  {approval.leaveType}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <svg
@@ -101,6 +121,8 @@ const Approvals = () => {
                       clipRule="evenodd"
                     />
                   </svg>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-6 w-6 text-red-500 hover:text-red-700 ml-4 cursor-pointer"
