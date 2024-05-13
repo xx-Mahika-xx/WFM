@@ -2,10 +2,12 @@ const express = require('express');
 const router = express.Router();
 const Job = require('../models/Job');
 const Available = require('../models/Available');
-const { fetchAttendanceWithFilters, fetchAvailableEmployeesWithFilters, fetchLeaveData, changeLeaveStatus, changeJobStatus, getUserInfoFromUsername } = require('../utils/jobhelper');
+const { fetchAttendanceWithFilters, fetchAvailableEmployeesWithFilters, changeJobStatus, getUserInfoFromUsername, getCalenderData } = require('../utils/jobhelper');
+const {changeLeaveStatus, fetchLeaveData, getRemainingLeaveForEmployee} = require('../utils/leavehelper');
 const LeaveModel = require('../models/Leave');
 const { updateCredits } = require('../utils/creditManager');
 const RequirementModel = require('../models/requirement');
+const UserDetailModel = require('../models/Userdetail');
 
 
 // Define a function to create a new job entry
@@ -69,7 +71,7 @@ router.post('/add-all-data', async (req, res) => {
 // get the attendance slotwise, datewise and by department
 router.get('/getattendance', async (req, res) => {
     try {
-        let { date, department, unit } = req.body;
+        let { date, department, unit } = req.query;
         if (!date) {
             date = new Date();
             date.setHours(0, 0, 0, 0);
@@ -144,13 +146,17 @@ router.post('/add-availability', async (req, res) => {
 
 // apply for leave using this api
 router.post('/apply-for-leave', async (req, res) =>{
-    const {employeeId, startDate, endDate, leavetype} = req.body;
+    const {userName, startDate, endDate, leaveType, reason} = req.body;
+    const userInfo = await getUserInfoFromUsername({username : userName});
+    console.log(userInfo);
+    const employeeId = userInfo.employeeId;
     const status = "pending"; 
     const newEntryData = {
         employeeId,
         startDate,
         endDate,
         leaveType,
+        reason,
         status
     }
     const newEntry = await LeaveModel.create(newEntryData);
@@ -160,12 +166,17 @@ router.post('/apply-for-leave', async (req, res) =>{
 // to fetch the leave application data
 router.get('/get-leave-data', async (req,res) => {
     try {
-        let { status } = req.body;
+        let { status, username } = req.query;
         if (status === undefined) {
             status = null;
         }
-        const result = await fetchLeaveData({status});
-        return res.json({ success: true,  data: result });
+        let employeeId = null;
+        if(username !== undefined){
+            const userInfo = await getUserInfoFromUsername({username});
+            employeeId = userInfo.employeeId;
+        }
+        const result = await fetchLeaveData({status, employeeId});
+        return res.json({  data: result });
     } catch (error) {
         console.error('Error fetching LeaveData:', error);
         res.status(500).json({ success: false, error: 'Error fetching LeaveData' });
@@ -174,14 +185,30 @@ router.get('/get-leave-data', async (req,res) => {
 
 // use this api to approve or reject leave application
 router.post('/change-leave-status', async (req, res) => {
-    const {leaveId, employeeId, startDate, endDate, toStatus} = req.body;
+    const {leaveId, username, startDate, endDate, toStatus} = req.body;
+    const userInfo = await getUserInfoFromUsername({username});
+    const employeeId = userInfo.employeeId;
     const result = await changeLeaveStatus({leaveId, toStatus});
     if(toStatus === "approved"){
         const jobStatus  = "onleave";
+
         const result2 = await changeJobStatus({employeeId, startDate, endDate, status: jobStatus});
     }
     return res.status(200);
 
+});
+
+router.get('/get-remaining-leave-for-employee', async(req,res) => {
+    try {
+        let {username } = req.query;
+        const userInfo = await getUserInfoFromUsername({username});
+        const employeeId = userInfo.employeeId;
+        const result = await getRemainingLeaveForEmployee({employeeId});
+        return res.json({ success: true,  data: result });
+    } catch (error) {
+        console.error('Error fetching LeaveData:', error);
+        res.status(500).json({ success: false, error: 'Error fetching LeaveData' });
+    }
 });
 
 router.post('/add-requirement', async (req,res) =>{
@@ -197,5 +224,34 @@ router.post('/add-requirement', async (req,res) =>{
     return res.status(200);
     
 });
+
+router.post('/add-user-detail', async (req,res) =>{
+    const {employeeId, department,casual_leave, sick_leave, paid_leave} = req.body;
+    const newEntryData = {
+        employeeId,
+        department,
+        casual_leave,
+        sick_leave,
+        paid_leave
+    }
+    const newEntry = await UserDetailModel.create(newEntryData);
+    return res.status(200);
+    
+});
+
+router.get('/get-calendar-data-for-employee', async(req,res) => {
+    try {
+        let {username } = req.query;
+        const userInfo = await getUserInfoFromUsername({username});
+        const employeeId = userInfo.employeeId;
+        const result = await getCalenderData({employeeId});
+        return res.json({ success: true,  data: result });
+    } catch (error) {
+        console.error('Error fetching LeaveData:', error);
+        res.status(500).json({ success: false, error: 'Error fetching LeaveData' });
+    }
+});
+
+
 
 module.exports = router;

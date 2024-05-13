@@ -22,6 +22,10 @@ const Leave = new mongoose.Schema({
         type: String,
         enum: ['sick', 'casual', 'paid']
     },
+    reason: {
+        type: String,
+        required: true
+    },
     status: {
         type: String,
         enum : ['pending', 'approved', 'rejected']

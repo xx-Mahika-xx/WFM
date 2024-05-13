@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const UserDetailModel = require('../models/Userdetail');
 const bcrypt = require('bcrypt');
 const {
 	getToken,
@@ -34,6 +35,16 @@ router.post('/register', async (req, res) => {
 	};
 	const newUser = await User.create(newUserData);
 	console.log(newUserData);
+	const userDetailData = {
+		employeeId: newUser._id,
+		department:"General",
+		casual_leave: 10,
+		sick_leave: 10,
+		paid_leave: 10
+	};
+
+	const newUserDetail = await UserDetailModel.create(userDetailData);
+	console.log(newUserDetail);
 
 	const token = await getToken(email, newUser);
 
