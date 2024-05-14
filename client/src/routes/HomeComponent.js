@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import Navbar from "../Navbar/Navbar";
+import HomeContentSlider from "../components/HomeContentSlider";
 
 const HomeComponent = () => {
   return (
@@ -7,49 +8,25 @@ const HomeComponent = () => {
       className="w-full h-full overflow-auto"
       style={{ backgroundColor: "#FFF2E1" }}
     >
-      <div className="flex p-8 justify-between font-semibold">
-        <Navbar />
-        <div className="flex">
-          <Link
-            to="/signup"
-            className="bg-white text-blue-600 px-4 py-2 mx-2 rounded-full hover:bg-blue-600 hover:text-white transition duration-300 flex items-center justify-center"
-          >
-            Sign Up
-          </Link>
-          <Link
-            to="/login"
-            className="bg-gradient-to-r from-blue-400 to-blue-600 text-white px-4 py-2 mx-2 rounded-full hover:from-blue-500 hover:to-blue-700 hover:text-white transition duration-300 flex items-center justify-center"
-          >
-            Log In
-          </Link>
-        </div>
-      </div>
-      <div className="flex flex-col items-center justify-center h-full">
-        <div className="text-center text-black">
-          <h1 className="text-6xl font-semibold mt-6">Welcome to</h1>{" "}
-          {/* Decreased margin top */}
-          <h2 className="text-7xl font-semibold mt-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
-            WFM
-          </h2>
-          <p className="text-xl text-color12 mt-5 max-w-md">
-            A new LLM based application to optimize staff allocation in
-            hospitals.
-          </p>
-          <div className="flex justify-center mt-8">
+      <div className="h-full">
+        <div className="flex p-8 justify-between font-semibold">
+          <Navbar />
+          <div className="flex">
             <Link
-              to="/login"
-              className="bg-gradient-to-r from-blue-400 to-blue-600 px-8 py-4 rounded-full text-white font-semibold text-xl mr-4 transition duration-300 ease-in-out hover:from-blue-500 hover:to-blue-700"
+              to="/signup"
+              className="bg-white text-blue-600 px-4 py-2 mx-2 rounded-full hover:bg-blue-600 hover:text-white transition duration-300 flex items-center justify-center"
             >
-              Start Applying
+              Sign Up
             </Link>
             <Link
-              to="#about"
-              className="bg-white px-8 py-4 rounded-full text-blue-600 font-semibold text-xl transition duration-300 ease-in-out hover:bg-blue-100"
+              to="/login"
+              className="bg-gradient-to-r from-blue-400 to-blue-600 text-white px-4 py-2 mx-2 rounded-full hover:from-blue-500 hover:to-blue-700 hover:text-white transition duration-300 flex items-center justify-center"
             >
-              Learn More
+              Log In
             </Link>
           </div>
         </div>
+        <HomeContentSlider />
       </div>
       <div
         className="bg-gradient-to-r from-003C43 to-135D66 text-black "

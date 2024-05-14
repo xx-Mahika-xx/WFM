@@ -1,0 +1,19 @@
+.slider-container, .slider-slide
+{
+    position: relative;
+}
+
+.slider-slide
+{
+    transition: opacity 0.8s;
+}
+
+.slider-slide.second-slide
+{
+    top: calc(120px - 100%);
+}
+
+.hidden-slide
+{
+    opacity: 0;
+}
