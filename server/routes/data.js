@@ -242,7 +242,7 @@ router.post('/change-leave-status', async (req, res) => {
     const userInfo = await getUserInfoFromUsername({username});
     const employeeId = userInfo.employeeId;
     const result = await changeLeaveStatus({leaveId, toStatus});
-    console.log(result);
+
     if(toStatus === "approved"){
         const jobStatus  = "onleave";
         const leaveType = result.leaveType;
