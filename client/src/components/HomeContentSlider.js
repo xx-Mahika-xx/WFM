@@ -11,7 +11,7 @@ const HomeContentSlider = () => {
   }, [count])
     return (
         <span className="slider-container">
-        <span className={'slider-slide ' + (count%2==1 ? '':'hidden-slide')}>
+        <span className={'slider-slide ' + (count%2==0 ? '':'hidden-slide')}>
         <div className="flex flex-row items-center justify-evenly h-below-navbar">
           <div>
             <HexagonalImage imglink="female_doctor.jpg" />
@@ -44,7 +44,7 @@ const HomeContentSlider = () => {
         </div>
         </span>
 
-        <span className={'slider-slide second-slide ' + (count%2==0 ? '':'hidden-slide')}>
+        <span className={'slider-slide second-slide ' + (count%2==1 ? '':'hidden-slide')}>
         <div className="flex flex-row items-center justify-evenly h-below-navbar">
           <div>
             <HexagonalImage imglink="doctor_image.jpg" />
