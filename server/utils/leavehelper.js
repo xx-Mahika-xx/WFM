@@ -69,15 +69,12 @@ async function deductLeaves({employeeId, leaveType}){
     try {
         const columnName = `${leaveType}_leave`;
         const result = await UserDetailModel.updateOne(
-            { _id: employeeId },
+            { employeeId: employeeId },
             { $inc: { [columnName]: -1 } }
         );
 
-        if (result.nModified === 0) {
-            throw new Error("No user found with the provided ID");
-        }
-
         console.log(`${leaveType} leave deducted for employee ${employeeId}`);
+        console.log(result);
         return result;
     } catch (error) {
         console.error('Error deducting leaves:', error);
