@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import Navbar from "../Navbar/Navbar";
-import HexagonalImage from "../components/HexagonalImage";
+import HomeContentSlider from "../components/HomeContentSlider";
 
 const HomeComponent = () => {
   return (
@@ -26,36 +26,7 @@ const HomeComponent = () => {
             </Link>
           </div>
         </div>
-        <div className="flex flex-row items-center justify-evenly h-below-navbar">
-          <div>
-            <HexagonalImage imglink="female_doctor.jpg" />
-          </div>
-          <div className="text-center text-black">
-            <h1 className="text-6xl font-semibold mt-6">Welcome to</h1>{" "}
-            {/* Decreased margin top */}
-            <h2 className="text-7xl font-semibold mt-4 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600">
-              WFM
-            </h2>
-            <p className="text-xl text-color12 mt-5 max-w-md">
-              A new LLM based application to optimize staff allocation in
-              hospitals.
-            </p>
-            <div className="flex justify-center mt-8">
-              <Link
-                to="/login"
-                className="bg-gradient-to-r from-blue-400 to-blue-600 px-8 py-4 rounded-full text-white font-semibold text-xl mr-4 transition duration-300 ease-in-out hover:from-blue-500 hover:to-blue-700"
-              >
-                Start Applying
-              </Link>
-              <Link
-                to="#about"
-                className="bg-white px-8 py-4 rounded-full text-blue-600 font-semibold text-xl transition duration-300 ease-in-out hover:bg-blue-100"
-              >
-                Learn More
-              </Link>
-            </div>
-          </div>
-        </div>
+        <HomeContentSlider />
       </div>
       <div
         className="bg-gradient-to-r from-003C43 to-135D66 text-black "
