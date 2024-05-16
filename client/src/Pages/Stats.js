@@ -12,6 +12,7 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 const Stats = () => {
   const [open, setOpen] = useState(false);
   const onCloseModal = () => setOpen(false);
+  const [optionsEmployee, setOptionsEmployee] = useState([]);
 
   const [pieData1, setPieData1] = useState({
     labels: ["Current Staffing", "Staffing Gaps"],
@@ -116,8 +117,17 @@ const Stats = () => {
         },
       });
       console.log("Employees Data:", response.data.data);
-      setOptionsEmployee(response.data.data); // Update options state with fetched data
+      const Emp = response.data.data;
+      let Arr = [];
+      Emp.map((item) => {
+        Arr.push({ id: item.employeeId, username: item.username });
+      });
+
+      console.log("Arr:", Arr);
+
+      setOptionsEmployee(Arr); // Update options state with fetched data
       setLoading(false); // Update loading state to indicate options are loaded
+
     } catch (error) {
       console.error("Error fetching options:", error);
     }
@@ -140,11 +150,10 @@ const Stats = () => {
       });
       console.log(response.data.data);
       const dataPie = response.data.data;
-
+      let StaffGap = [];
       dataPie.map((item, index) => {
         const currentStaff = item.count;
         const requiredStaff = item.requirement - item.count;
-
         let low, high;
         // console.log("Current Staff: ",currentStaff," Required Staff: ",requiredStaff);
         if (index === 0) {
@@ -314,24 +323,35 @@ const Stats = () => {
 
   // State variable to store selected employees
   const [selectedEmployees, setSelectedEmployees] = useState([]);
-  const [optionsEmployee, setOptionsEmployee] = useState([]);
   // State variable to track loading state
   const [loading, setLoading] = useState(true);
 
   // Function to handle employee selection/deselection
-  const handleEmployeeSelect = (selectedList, selectedItem) => {
-    setSelectedEmployees(selectedList);
+  const handleEmployeeSelect = (selectedList) => {
+      setSelectedEmployees(selectedList);
   };
 
   // Function to handle confirm button click
   const handleConfirmClick = async () => {
     try {
+      console.log("Selected Employees: ", selectedEmployees);
+
       // Send selected employee data to the backend
-      await axios.post("your-backend-endpoint", {
-        employees: selectedEmployees,
-      });
+      await Promise.all(
+        selectedEmployees.map(async (item) => {
+          await axios.post("/data/assign-employee", {
+            employeeId: item.id, // Assuming each item represents a single employee
+          });
+        })
+      );
+
+      // await axios.post("/data/assign-employee", {
+      //   employeeId: selectedEmployees[0].id, // Assuming each item represents a single employee
+      // });
+
       // Close the modal after successful submission
       onCloseModal();
+      fetchData(department, unit);
     } catch (error) {
       console.error("Error sending data to the backend:", error);
       // Handle error (e.g., display error message)
@@ -351,8 +371,8 @@ const Stats = () => {
 
   const onClickChart1 = (event, slot) => {
     if (getElementsAtEvent(chartRef.current, event).length > 0) {
-      setOpen(true);
       fetchOptions(department, slot);
+      setOpen(true);
     }
   };
 
@@ -506,9 +526,10 @@ const Stats = () => {
                 style={{ minHeight: "200px" }}
               >
                 <label className="pr-4 text-right mr-2">Employee:</label>
+
                 <Multiselect
                   style={{
-                    chips: { background: "#A1E3D8" },
+                    chips: { background: "#A1E3D8", color: "black" },
                     multiselectContainer: { color: "#A1E3D8" },
                     searchBox: {
                       border: "none",
@@ -516,10 +537,11 @@ const Stats = () => {
                       borderRadius: "0px",
                     },
                   }}
+                  selectedValues={selectedEmployees}
                   onSelect={handleEmployeeSelect}
                   onRemove={handleEmployeeSelect}
                   options={optionsEmployee} // Pass options fetched from backend
-                  displayValue="Employee"
+                  displayValue="username"
                 />
               </div>
             )}

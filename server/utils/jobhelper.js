@@ -106,8 +106,8 @@ async function fetchAvailableEmployeesWithFilters({date, department, slot}){
         const matchStage = {
             $match: {
                 department: department,
-                date: date,
-                slot: slot
+                date: new Date(date),
+                slot: parseInt(slot)
             }
         };
 
