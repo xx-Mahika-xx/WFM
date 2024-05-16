@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Calendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import Papa from "papaparse"; // CSV parsing library
-import Data from "../data.csv";
+// import Data from "../data.csv";
 import { backendUrl } from "../utils/config";
 import axios from "axios";
 
@@ -15,82 +15,51 @@ const localizer = momentLocalizer(moment);
 
 const ReactBigCalendar = () => {
   const [events, setEvents] = useState([]);
-  const [selectedWorkTimings, setSelectedWorkTimings] = useState("");
   const [selectedWorkTimingsDate, setSelectedWorkTimingsDate] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
+  const username = getUsernameFromCookie();
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(Data); // Path to your CSV file
-        const reader = response.body.getReader();
-        const result = await reader.read();
-        const decoder = new TextDecoder("utf-8");
-        const csvData = decoder.decode(result.value);
-        const parsedData = Papa.parse(csvData, {
-          header: true,
-          skipEmptyLines: true,
-        }).data;
+        let calenderData;
 
-        const formattedEvents = parsedData.map((event) => {
-          // Extract hour, minute, and second components from the startTime and endTime strings
-          const [startD, startT] = event.startTime.split("T");
-          const startDateParts = startD.split("-");
-          const startYear = parseInt(startDateParts[0], 10);
-          const startMonth = parseInt(startDateParts[1], 10) - 1; // Adjusting month to be zero-based
-          const startDay = parseInt(startDateParts[2], 10);
+        axios
+          .get("/data/get-calendar-data-for-employee", {
+            params: {
+              username: username,
+            },
+          })
+          .then((response) => {
+            calenderData = response.data.data;
+            // console.log(calenderData);
 
-          const startTimeParts = startT.split(":");
-          const startHour = parseInt(startTimeParts[0], 10);
-          const startMinute = parseInt(startTimeParts[1], 10);
+            const parsedData = Papa.parse(calenderData, {
+              header: true,
+              skipEmptyLines: true,
+            }).data;
 
-          const [endD, endT] = event.endTime.split("T");
-          const endDateParts = endD.split("-");
-          const endYear = parseInt(endDateParts[0], 10);
-          const endMonth = parseInt(endDateParts[1], 10) - 1; // Adjusting month to be zero-based
-          const endDay = parseInt(endDateParts[2], 10);
+            const formattedEvents = parsedData.map((event) => {
+              const start = moment(event.startTime, "YYYY-MM-DDTHH:mm");
+              const end = moment(event.endTime, "YYYY-MM-DDTHH:mm");
+              return {
+                ...event,
+                start: start.toDate(),
+                end: end.toDate(),
+              };
+            });
 
-          const endTimeParts = endT.split(":");
-          const endHour = parseInt(endTimeParts[0], 10);
-          const endMinute = parseInt(endTimeParts[1], 10);
-
-          // Create Date objects for start and end times
-          const startDate = new Date(
-            startYear,
-            startMonth,
-            startDay,
-            startHour,
-            startMinute,
-            0
-          );
-          const endDate = new Date(
-            endYear,
-            endMonth,
-            endDay,
-            endHour,
-            endMinute,
-            0
-          );
-
-          return {
-            ...event,
-            start: startDate,
-            end: endDate,
-          };
-        });
-
-        setEvents(formattedEvents);
+            setEvents(formattedEvents);
+          })
+          .catch((error) => console.error("Error fetching Calendar:", error));
       } catch (error) {
         console.error("Error fetching data: ", error);
       }
     };
     fetchData();
   }, []);
-
-  const handleWorkTimingsChange = (e) => {
-    setSelectedWorkTimings(e.target.value);
-  };
 
   const handleWorkTimingsChangeDate = (e) => {
     setSelectedWorkTimingsDate(e.target.value);
@@ -106,10 +75,10 @@ const ReactBigCalendar = () => {
     setEndDate(event.target.value);
   };
 
-  //Api for sending all data 
+  //Api for sending all data
   const sendDataToBackend = () => {
     // Create an object containing all the data
-    const username = getUsernameFromCookie();
+
     const slot = selectedWorkTimingsDate;
     const formData = {
       username,
@@ -125,24 +94,17 @@ const ReactBigCalendar = () => {
       .then((response) => {
         // Handle response from the backend if needed
         console.log("Data sent successfully:", response.data);
+        setSelectedWorkTimingsDate("");
+        setStartDate("");
+        setEndDate("");
       })
       .catch((error) => {
         console.error("Error sending data:", error);
       });
   };
 
-  // //Api for sending data of only timings
-  // const handleUpdateWorkTimings = () => {
-  //   axios
-  //     .post("your-backend-endpoint", selectedWorkTimings)
-  //     .then((response) => {
-  //       // Handle response from the backend if needed
-  //       console.log("Data sent successfully:", response.data);
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error sending data:", error);
-  //     });
-  // };
+  //Api endpoint : /data/get-calender-data-for-employee
+  //give username
 
   const getTodayDate = () => {
     const today = new Date();

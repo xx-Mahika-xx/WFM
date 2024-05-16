@@ -13,33 +13,222 @@ const Stats = () => {
   const [open, setOpen] = useState(false);
   const onCloseModal = () => setOpen(false);
 
-  const [pieChartData, setPieChartData] = useState({
-    currentStaffing: 1,
-    staffingGaps: 1,
+  const [pieData1, setPieData1] = useState({
+    labels: ["Current Staffing", "Staffing Gaps"],
+    datasets: [
+      {
+        label: "Staffing",
+        data: [1, 1],
+        borderColor: "black",
+        backgroundColor: ["#F7A76C", "#EC7272"],
+      },
+    ],
   });
 
+  const [pieData2, setPieData2] = useState({
+    labels: ["Current Staffing", "Staffing Gaps"],
+    datasets: [
+      {
+        label: "Staffing",
+        data: [1, 1],
+        borderColor: "black",
+        backgroundColor: ["#F7A76C", "#EC7272"],
+      },
+    ],
+  });
+
+  const [pieData3, setPieData3] = useState({
+    labels: ["Current Staffing", "Staffing Gaps"],
+    datasets: [
+      {
+        label: "Staffing",
+        data: [1, 1],
+        borderColor: "black",
+        backgroundColor: ["#F7A76C", "#EC7272"],
+      },
+    ],
+  });
+
+  const [pieData4, setPieData4] = useState({
+    labels: ["Current Staffing", "Staffing Gaps"],
+    datasets: [
+      {
+        label: "Staffing",
+        data: [1, 1],
+        borderColor: "black",
+        backgroundColor: ["#F7A76C", "#EC7272"],
+      },
+    ],
+  });
+
+  const [pieData5, setPieData5] = useState({
+    labels: ["Current Staffing", "Staffing Gaps"],
+    datasets: [
+      {
+        label: "Staffing",
+        data: [1, 1],
+        borderColor: "black",
+        backgroundColor: ["#F7A76C", "#EC7272"],
+      },
+    ],
+  });
+
+  const [pieData6, setPieData6] = useState({
+    labels: ["Current Staffing", "Staffing Gaps"],
+    datasets: [
+      {
+        label: "Staffing",
+        data: [1, 1],
+        borderColor: "black",
+        backgroundColor: ["#F7A76C", "#EC7272"],
+      },
+    ],
+  });
+
+  let staffReq1, staffReq2, staffReq3, staffReq4, staffReq5, staffReq6;
+
   useEffect(() => {
-    // Fetch pie chart data from the backend
-    const fetchData = async () => {
-      try {
-        const response = await axios.get("your-backend-endpoint");
-        const data = response.data;
-        setPieChartData(data);
-      } catch (error) {
-        console.error("Error fetching pie chart data:", error);
-      }
-    };
-
-    fetchData(); // Fetch data initially
-
+    fetchOptions(); // Call fetchOptions function when component mounts
     // Update data every minute
+    fetchData("Surgery", "General Surgery Unit");
     const interval = setInterval(() => {
-      fetchData();
       setCurrentTime(getCurrentTime()); // Update current time
     }, 60000); // Update every minute
 
     return () => clearInterval(interval); // Cleanup interval on unmount
   }, []);
+
+  const fetchOptions = async (department, slot) => {
+    try {
+      const encodedDate = "2024-04-25T00:00:00.000+00:00";
+      console.log("Department: ", department, " Slot: ", slot);
+      const date = new Date(); // Get the current date and time
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0"); // Month is zero-based, so add 1
+      const day = String(date.getDate()).padStart(2, "0");
+      const formattedDate = `${year}-${month}-${day}T00:00:00.000+00:00`;
+
+      const response = await axios.get("/data/get-available-employees", {
+        params: {
+          date: encodedDate,
+          department: department,
+          slot: slot,
+        },
+      });
+      console.log("Employees Data:", response.data.data);
+      setOptionsEmployee(response.data.data); // Update options state with fetched data
+      setLoading(false); // Update loading state to indicate options are loaded
+    } catch (error) {
+      console.error("Error fetching options:", error);
+    }
+  };
+
+  const fetchData = async (department, unit) => {
+    try {
+      const encodedDate = "2024-04-27T00:00:00.000+00:00";
+      const date = new Date(); // Get the current date and time
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0"); // Month is zero-based, so add 1
+      const day = String(date.getDate()).padStart(2, "0");
+      const formattedDate = `${year}-${month}-${day}T00:00:00.000+00:00`;
+      const response = await axios.get("/data/getattendance", {
+        params: {
+          date: encodedDate,
+          department: department,
+          unit: unit,
+        },
+      });
+      console.log(response.data.data);
+      const dataPie = response.data.data;
+
+      dataPie.map((item, index) => {
+        const currentStaff = item.count;
+        const requiredStaff = item.requirement - item.count;
+
+        let low, high;
+        // console.log("Current Staff: ",currentStaff," Required Staff: ",requiredStaff);
+        if (index === 0) {
+          low = 0;
+          high = 4;
+          staffReq1 = requiredStaff;
+        } else if (index === 1) {
+          low = 4;
+          high = 8;
+          staffReq2 = requiredStaff;
+        } else if (index === 2) {
+          low = 8;
+          high = 12;
+          staffReq3 = requiredStaff;
+        } else if (index === 3) {
+          low = 12;
+          high = 16;
+          staffReq4 = requiredStaff;
+        } else if (index === 4) {
+          low = 16;
+          high = 20;
+          staffReq5 = requiredStaff;
+        } else if (index === 5) {
+          low = 20;
+          high = 24;
+          staffReq6 = requiredStaff;
+        }
+
+        if (currentTime >= low && currentTime < high) {
+          let CurrentData = {
+            labels: ["Current Staffing", "Staffing Gaps"],
+            datasets: [
+              {
+                label: "Staffing",
+                data: [currentStaff, requiredStaff],
+                borderColor: "black",
+                backgroundColor: ["#F7A76C", "#EC7272"],
+              },
+            ],
+          };
+          if (index === 0) {
+            setPieData1(CurrentData);
+          } else if (index === 1) {
+            setPieData2(CurrentData);
+          } else if (index === 2) {
+            setPieData3(CurrentData);
+          } else if (index === 3) {
+            setPieData4(CurrentData);
+          } else if (index === 4) {
+            setPieData5(CurrentData);
+          } else if (index === 5) {
+            setPieData6(CurrentData);
+          }
+        } else {
+          let UpcomingData = {
+            labels: ["Upcoming Staffing", "Staffing Gaps"],
+            datasets: [
+              {
+                label: "Staffing",
+                data: [currentStaff, requiredStaff],
+                borderColor: "black",
+                backgroundColor: ["#C3FF99", "#EC7272"],
+              },
+            ],
+          };
+          if (index === 0) {
+            setPieData1(UpcomingData);
+          } else if (index === 1) {
+            setPieData2(UpcomingData);
+          } else if (index === 2) {
+            setPieData3(UpcomingData);
+          } else if (index === 3) {
+            setPieData4(UpcomingData);
+          } else if (index === 4) {
+            setPieData5(UpcomingData);
+          } else if (index === 5) {
+            setPieData6(UpcomingData);
+          }
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching pie chart data:", error);
+    }
+  };
 
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
 
@@ -50,66 +239,8 @@ const Stats = () => {
     return hours;
   }
 
-  // Function to update current time every minute
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(getCurrentTime());
-    }, 60000); // Update every minute
-    return () => clearInterval(interval);
-  }, []);
-
-  const CurrentData = {
-    labels: ["Current Staffing", "Staffing Gaps"],
-    datasets: [
-      {
-        label: "Staffing",
-        data: [pieChartData.currentStaffing, pieChartData.staffingGaps],
-        borderColor: "black",
-        backgroundColor: ["#F7A76C", "#EC7272"],
-      },
-    ],
-  };
-
-  const UpcomingData = {
-    labels: ["Upcoming Staffing", "Staffing Gaps"],
-    datasets: [
-      {
-        label: "Staffing",
-        data: [pieChartData.currentStaffing, pieChartData.staffingGaps],
-        borderColor: "black",
-        backgroundColor: ["#C3FF99", "#EC7272"],
-      },
-    ],
-  };
-
-  // Function to get the appropriate data and color scheme based on current time
-  function getCurrentChartData(low, high) {
-    if (currentTime >= low && currentTime < high) {
-      return CurrentData;
-    } else {
-      return UpcomingData;
-    }
-  }
-
-  const options = {};
-
-  const chartRef1 = useRef();
-  const chartRef = useRef();
-
-  const onClick = (event) => {};
-
-  const onClickChart1 = (event) => {
-    if (getElementsAtEvent(chartRef1.current, event).length > 0) {
-      const datasetIndexNum = getElementsAtEvent(chartRef1.current, event)[0]
-        .datasetIndex;
-      const dataPoint = getElementsAtEvent(chartRef1.current, event)[0].index;
-      console.log(`Dataset: ${datasetIndexNum} and Data: ${dataPoint}`);
-      console.log(CurrentData.datasets[datasetIndexNum].data[dataPoint]);
-      setOpen(true);
-    }
-  };
-
   const [department, setDepartment] = useState("Surgery"); // State to track the selected department
+  const [unit, setUnit] = useState("General Surgery Unit");
   const [unitOptions, setUnitOptions] = useState([
     "General Surgery Unit",
     "Orthopedic Surgery Unit",
@@ -126,6 +257,8 @@ const Stats = () => {
     // Update the options for the second dropdown based on the selected department
     // Example: You can fetch options from an API based on the selected department
     if (selectedDepartment === "Surgery") {
+      setUnit("General Surgery Unit");
+      fetchData(selectedDepartment, unit);
       setUnitOptions([
         "General Surgery Unit",
         "Orthopedic Surgery Unit",
@@ -134,6 +267,8 @@ const Stats = () => {
         "Plastic and Reconstructive Surgery Unit",
       ]);
     } else if (selectedDepartment === "Pediatrics") {
+      setUnit("Neonatal Intensive Care Unit (NICU)");
+      fetchData(selectedDepartment, unit);
       setUnitOptions([
         "Neonatal Intensive Care Unit (NICU)",
         "Pediatric Oncology Unit",
@@ -142,6 +277,8 @@ const Stats = () => {
         "Pediatric Pulmonology Unit",
       ]);
     } else if (selectedDepartment === "Obstetrics and Gynecology") {
+      setUnit("Labor and Delivery Unit");
+      fetchData(selectedDepartment, unit);
       setUnitOptions([
         "Labor and Delivery Unit",
         "High-Risk Obstetrics Unit",
@@ -150,6 +287,8 @@ const Stats = () => {
         "Maternal-Fetal Medicine Unit",
       ]);
     } else if (selectedDepartment === "Emergency Medicine") {
+      setUnit("Trauma Unit");
+      fetchData(selectedDepartment, unit);
       setUnitOptions([
         "Trauma Unit",
         "Critical Care Unit",
@@ -158,6 +297,8 @@ const Stats = () => {
         "Stroke Unit",
       ]);
     } else if (selectedDepartment === "Internal Medicine") {
+      setUnit("Cardiology Unit");
+      fetchData(selectedDepartment, unit);
       setUnitOptions([
         "Cardiology Unit",
         "Gastroenterology Unit",
@@ -165,12 +306,9 @@ const Stats = () => {
         "Nephrology Unit",
         "Endocrinology Unit",
       ]);
-    }
-      else if (selectedDepartment === "General") {
-        setUnitOptions([
-          "A",
-          "B",
-        ]);
+    } else if (selectedDepartment === "General") {
+      fetchData(selectedDepartment, "A");
+      setUnitOptions(["A", "B"]);
     }
   };
 
@@ -179,21 +317,6 @@ const Stats = () => {
   const [optionsEmployee, setOptionsEmployee] = useState([]);
   // State variable to track loading state
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Fetch options from the backend when the component mounts
-    const fetchOptions = async () => {
-      try {
-        const response = await axios.get("your-backend-options-endpoint");
-        setOptionsEmployee(response.data); // Update options state with fetched data
-        setLoading(false); // Update loading state to indicate options are loaded
-      } catch (error) {
-        console.error("Error fetching options:", error);
-      }
-    };
-
-    fetchOptions(); // Call fetchOptions function when component mounts
-  }, []);
 
   // Function to handle employee selection/deselection
   const handleEmployeeSelect = (selectedList, selectedItem) => {
@@ -212,6 +335,24 @@ const Stats = () => {
     } catch (error) {
       console.error("Error sending data to the backend:", error);
       // Handle error (e.g., display error message)
+    }
+  };
+
+  const handleUnitChange = (event) => {
+    // Access the selected value with event.target.value
+    const selectedUnit = event.target.value;
+    fetchData(department, selectedUnit);
+    // console.log(department,selectedUnit);
+  };
+
+  const options = {};
+
+  const chartRef = useRef();
+
+  const onClickChart1 = (event, slot) => {
+    if (getElementsAtEvent(chartRef.current, event).length > 0) {
+      setOpen(true);
+      fetchOptions(department, slot);
     }
   };
 
@@ -250,6 +391,7 @@ const Stats = () => {
           <select
             className="p-2 rounded-md shadow-lg w-full md:w-auto"
             style={{ backgroundColor: "#fff", color: "#000" }}
+            onChange={handleUnitChange}
           >
             {unitOptions.map((option, index) => (
               <option key={index}>{option}</option>
@@ -270,10 +412,10 @@ const Stats = () => {
           </h3>
           <Pie
             style={{ maxHeight: "96%" }}
-            data={getCurrentChartData(0, 4)}
+            data={pieData1}
             options={options}
-            onClick={onClickChart1}
-            ref={chartRef1}
+            onClick={(event) => onClickChart1(event, 1)}
+            ref={chartRef}
           />
         </div>
         <div
@@ -285,9 +427,9 @@ const Stats = () => {
           </h3>
           <Pie
             style={{ maxHeight: "96%" }}
-            data={getCurrentChartData(4, 8)}
+            data={pieData2}
             options={options}
-            onClick={onClick}
+            onClick={(event) => onClickChart1(event, 2)}
             ref={chartRef}
           />
         </div>
@@ -300,9 +442,9 @@ const Stats = () => {
           </h3>
           <Pie
             style={{ maxHeight: "96%" }}
-            data={getCurrentChartData(8, 12)}
+            data={pieData3}
             options={options}
-            onClick={onClick}
+            onClick={(event) => onClickChart1(event, 3)}
             ref={chartRef}
           />
         </div>
@@ -315,9 +457,9 @@ const Stats = () => {
           </h3>
           <Pie
             style={{ maxHeight: "96%" }}
-            data={getCurrentChartData(12, 16)}
+            data={pieData4}
             options={options}
-            onClick={onClick}
+            onClick={(event) => onClickChart1(event, 4)}
             ref={chartRef}
           />
         </div>
@@ -330,9 +472,9 @@ const Stats = () => {
           </h3>
           <Pie
             style={{ maxHeight: "96%" }}
-            data={getCurrentChartData(16, 20)}
+            data={pieData5}
             options={options}
-            onClick={onClick}
+            onClick={(event) => onClickChart1(event, 5)}
             ref={chartRef}
           />
         </div>
@@ -345,9 +487,9 @@ const Stats = () => {
           </h3>
           <Pie
             style={{ maxHeight: "96%" }}
-            data={getCurrentChartData(20, 24)}
+            data={pieData6}
             options={options}
-            onClick={onClick}
+            onClick={(event) => onClickChart1(event, 6)}
             ref={chartRef}
           />
         </div>
@@ -376,7 +518,7 @@ const Stats = () => {
                   }}
                   onSelect={handleEmployeeSelect}
                   onRemove={handleEmployeeSelect}
-                  options={options} // Pass options fetched from backend
+                  options={optionsEmployee} // Pass options fetched from backend
                   displayValue="Employee"
                 />
               </div>

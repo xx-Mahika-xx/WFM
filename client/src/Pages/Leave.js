@@ -56,14 +56,25 @@ const Leave = () => {
     axios
       .post("/data/apply-for-leave", formData)
       .then((response) => {
-        // Handle success response
-        setSuccessMessage("Leave application submitted successfully.");
-        // Update leave data after successful submission
+        setFromDate("");
+        setToDate("");
+        setReason("");
+        setLeaveType("casual");
         fetchLeaveData();
       })
       .catch((error) => {
         console.error("Error submitting leave application:", error);
       });
+  };
+
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    let month = today.getMonth() + 1;
+    let day = today.getDate();
+    month = month < 10 ? "0" + month : month;
+    day = day < 10 ? "0" + day : day;
+    return `${year}-${month}-${day}`;
   };
 
   return (
@@ -86,6 +97,7 @@ const Leave = () => {
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
             required
+            min={getTodayDate()}
           />
         </div>
         <div className="mb-4">
@@ -102,6 +114,7 @@ const Leave = () => {
             value={toDate}
             onChange={(e) => setToDate(e.target.value)}
             required
+            min={fromDate || getTodayDate()}
           />
         </div>
         <div className="mb-4">

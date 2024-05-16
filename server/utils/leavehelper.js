@@ -67,6 +67,7 @@ async function getRemainingLeaveForEmployee({employeeId}) {
 
 async function deductLeaves({employeeId, leaveType}){
     try {
+        console.log(employeeId);
         const columnName = `${leaveType}_leave`;
         const result = await UserDetailModel.updateOne(
             { employeeId: employeeId },

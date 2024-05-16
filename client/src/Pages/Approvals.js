@@ -7,46 +7,51 @@ const Approvals = () => {
   const [approvals, setApprovals] = useState([]);
 
   useEffect(() => {
-    // fetchApprovals();
+    fetchApprovals();
+  }, []);
+
+  const fetchApprovals = () => {
     axios
       .get("/data/get-leave-data")
       .then((response) => {
         let dataArr = [];
         response.data.data.map((item) => {
-          dataArr.push({
-            name: item.name,
-            department: item.department,
-            startDate: new Date(item.startDate).toDateString(),
-            endDate: new Date(item.endDate).toDateString(),
-            reason: item.reason,
-            leaveType: item.leaveType,
-          });
+          if (item.status === "pending") {
+            dataArr.push({
+              name: item.username,
+              department: item.department,
+              startDate: new Date(item.startDate).toDateString(),
+              endDate: new Date(item.endDate).toDateString(),
+              reason: item.reason,
+              leaveType: item.leaveType,
+              _id: item._id,
+              status: item.status,
+            });
+          }
         });
         setApprovals(dataArr);
       })
       .catch((error) => console.error("Error fetching approvals:", error));
-  }, []);
+  };
 
-  const fetchApprovals = () => {};
-
-  const handleTickClick = (id) => {
+  const handleTickClick = (leaveId, username, toStatus) => {
     // Send the response to the backend
     axios
-      .post("your-api-endpoint", { id, response: "approved" })
-      .then(() => {
-        // Update the approvals list in the frontend by removing the approved entry
-        setApprovals(approvals.filter((approval) => approval.id !== id));
-      })
+      .post("/data/change-leave-status", { leaveId, username, toStatus })
+      .then((response => {
+        fetchApprovals();
+        window.alert("Submitted Successfully");
+      }))
       .catch((error) => console.error("Error updating approval:", error));
   };
 
-  const handleCrossClick = (id) => {
+  const handleCrossClick = (leaveId, username, toStatus) => {
     // Send the response to the backend
     axios
-      .post("your-api-endpoint", { id, response: "rejected" })
-      .then(() => {
-        // Update the approvals list in the frontend by removing the rejected entry
-        setApprovals(approvals.filter((approval) => approval.id !== id));
+      .post("/data/change-leave-status", { leaveId, username, toStatus })
+      .then((response) => {
+        fetchApprovals();
+        window.alert("Submitted Successfully");
       })
       .catch((error) => console.error("Error updating approval:", error));
   };
@@ -89,7 +94,7 @@ const Approvals = () => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {approvals.map((approval, index) => (
-              <tr key={approval.id} className="text-center">
+              <tr key={approval._id} className="text-center">
                 <td className="px-6 py-4 whitespace-nowrap">{index + 1}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{approval.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -113,7 +118,9 @@ const Approvals = () => {
                     className="h-6 w-6 text-green-500 hover:text-green-700 cursor-pointer"
                     viewBox="0 0 20 20"
                     fill="currentColor"
-                    onClick={() => handleTickClick(approval.id)}
+                    onClick={() =>
+                      handleTickClick(approval._id, approval.name, "approved")
+                    }
                   >
                     <path
                       fillRule="evenodd"
@@ -128,7 +135,9 @@ const Approvals = () => {
                     className="h-6 w-6 text-red-500 hover:text-red-700 ml-4 cursor-pointer"
                     viewBox="0 0 20 20"
                     fill="currentColor"
-                    onClick={() => handleCrossClick(approval.id)}
+                    onClick={() =>
+                      handleCrossClick(approval._id, approval.name, "rejected")
+                    }
                   >
                     <path
                       fillRule="evenodd"

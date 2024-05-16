@@ -101,11 +101,12 @@ async function fetchAvailableEmployeesWithFilters({date, department, slot}){
     try {
         const pipeline = [];
 
+        console.log("Date:",date," Department:",department," Slot:",slot);
         // Match stage to filter by department, date, and slot
         const matchStage = {
             $match: {
                 department: department,
-                date: new Date(date),
+                date: date,
                 slot: slot
             }
         };
