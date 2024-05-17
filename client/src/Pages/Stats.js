@@ -335,12 +335,18 @@ const Stats = () => {
   const handleConfirmClick = async () => {
     try {
       console.log("Selected Employees: ", selectedEmployees);
-
+      const encodedDate = "2024-04-25T00:00:00.000+00:00";
       // Send selected employee data to the backend
       await Promise.all(
         selectedEmployees.map(async (item) => {
           await axios.post("/data/assign-employee", {
             employeeId: item.id, // Assuming each item represents a single employee
+            department: department,
+            unit: unit,
+            date: encodedDate,
+            slot: 5,
+            status: "working"
+            
           });
         })
       );
