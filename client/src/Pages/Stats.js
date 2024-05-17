@@ -120,7 +120,7 @@ const Stats = () => {
       const Emp = response.data.data;
       let Arr = [];
       Emp.map((item) => {
-        Arr.push({ id: item.employeeId, username: item.username });
+        Arr.push({ id: item.employeeId, username: item.username, slot: item.slot });
       });
 
       console.log("Arr:", Arr);
@@ -135,6 +135,7 @@ const Stats = () => {
 
   const fetchData = async (department, unit) => {
     try {
+      console.log("Get Attendance:", unit)
       const encodedDate = "2024-04-27T00:00:00.000+00:00";
       const date = new Date(); // Get the current date and time
       const year = date.getFullYear();
@@ -316,6 +317,7 @@ const Stats = () => {
         "Endocrinology Unit",
       ]);
     } else if (selectedDepartment === "General") {
+      setUnit("A");
       fetchData(selectedDepartment, "A");
       setUnitOptions(["A", "B"]);
     }
@@ -336,6 +338,13 @@ const Stats = () => {
     try {
       console.log("Selected Employees: ", selectedEmployees);
       const encodedDate = "2024-04-25T00:00:00.000+00:00";
+
+      const date = new Date(); // Get the current date and time
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0"); // Month is zero-based, so add 1
+      const day = String(date.getDate()).padStart(2, "0");
+      const formattedDate = `${year}-${month}-${day}T00:00:00.000+00:00`;
+
       // Send selected employee data to the backend
       await Promise.all(
         selectedEmployees.map(async (item) => {
@@ -344,19 +353,17 @@ const Stats = () => {
             department: department,
             unit: unit,
             date: encodedDate,
-            slot: 5,
+            slot: parseInt(item.slot),
             status: "working"
             
           });
         })
       );
-
-      // await axios.post("/data/assign-employee", {
-      //   employeeId: selectedEmployees[0].id, // Assuming each item represents a single employee
-      // });
+      setSelectedEmployees("");
 
       // Close the modal after successful submission
       onCloseModal();
+      console.log("Dep:",department,"Unit:",unit)
       fetchData(department, unit);
     } catch (error) {
       console.error("Error sending data to the backend:", error);
