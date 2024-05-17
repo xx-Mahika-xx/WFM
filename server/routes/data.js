@@ -21,6 +21,61 @@ const { updateCredits } = require("../utils/creditManager");
 const RequirementModel = require("../models/requirement");
 const UserDetailModel = require("../models/Userdetail");
 
+
+const multer = require('multer');
+const csv = require('csv-parser');
+const fs = require('fs');
+
+// Multer configuration for handling file uploads
+const upload = multer({ dest: 'uploads/' }); // Specify the upload directory
+
+router.post("/add-csv-data", upload.single('csvFile'), async (req, res) => {
+  try {
+    const newEntries = [];
+
+    // Check if file exists in request
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const filePath = req.file.path;
+
+    // Read CSV file
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on('data', async (row) => {
+        // Process each row of the CSV file
+        console.log(row);
+        const { employeeId, department, unit, date, slot, status } = row;
+        // const parseSlot = JSON.parse(slot);
+        const parsedDate = new Date(date);
+        const newEntryData = {
+          employeeId,
+          department,
+          unit,
+          parsedDate,
+          slot,
+          status,
+        };
+
+        // Create new entry in database
+        const newEntry = await Job.create(newEntryData);
+        newEntries.push(newEntry);
+      })
+      .on('end', () => {
+        // Delete uploaded file after processing
+        fs.unlinkSync(filePath);
+        console.log("CSV file processed successfully");
+        console.log(newEntries);
+        res.status(200).json({ message: "Entries added successfully" });
+      });
+  } catch (error) {
+    console.error("Error processing CSV file:", error);
+    res.status(500).json({ error: "Error processing CSV file" });
+  }
+});
+
+
 // Define a function to create a new job entry
 const createJobEntry = async (req, res) => {
   const { employeeId, department, unit, date, slot, status } = req.body;
@@ -111,7 +166,7 @@ router.get("/getattendance", async (req, res) => {
 router.get("/get-available-employees", async (req, res) => {
   try {
     let { date, department, slot } = req.query;
-    console.log(date,department,slot);
+    
     const result = await fetchAvailableEmployeesWithFilters({
       date,
       department,

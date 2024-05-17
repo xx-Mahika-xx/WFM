@@ -100,8 +100,6 @@ async function fetchAttendanceWithFilters({ date, department, unit }) {
 async function fetchAvailableEmployeesWithFilters({date, department, slot}){
     try {
         const pipeline = [];
-
-        console.log("Date:",date," Department:",department," Slot:",slot);
         // Match stage to filter by department, date, and slot
         const matchStage = {
             $match: {
@@ -143,7 +141,6 @@ async function fetchAvailableEmployeesWithFilters({date, department, slot}){
                 }
             },
         );
-
         const result = await Available.aggregate(pipeline); 
         const sortedResult = result.sort((a, b) => a.credits - b.credits);
 
