@@ -45,19 +45,20 @@ router.post("/add-csv-data", upload.single('csvFile'), async (req, res) => {
       .pipe(csv())
       .on('data', async (row) => {
         // Process each row of the CSV file
-        console.log(row);
+        console.log("row" , row);
         const { employeeId, department, unit, date, slot, status } = row;
-        // const parseSlot = JSON.parse(slot);
+        const parsedSlot = JSON.parse(slot).map(Number);
         const parsedDate = new Date(date);
         const newEntryData = {
           employeeId,
           department,
           unit,
-          parsedDate,
-          slot,
+          date: parsedDate,
+          slot: parsedSlot,
           status,
         };
 
+        console.log("newEntryData ->", newEntryData);
         // Create new entry in database
         const newEntry = await Job.create(newEntryData);
         newEntries.push(newEntry);
@@ -90,7 +91,7 @@ const createJobEntry = async (req, res) => {
 
   try {
     const newEntry = await Job.create(newEntryData);
-    console.log(newEntry);
+    console.log("jobentry", newEntry);
     return res.status(200).json({ success: true, data: newEntry });
   } catch (error) {
     console.error(error);
