@@ -136,7 +136,7 @@ const Stats = () => {
   const fetchData = async (department, unit) => {
     try {
       console.log("Get Attendance:", unit)
-      const encodedDate = "2024-04-27T00:00:00.000+00:00";
+      const encodedDate = "2024-05-20T00:00:00.000+00:00";
       const date = new Date(); // Get the current date and time
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0"); // Month is zero-based, so add 1
