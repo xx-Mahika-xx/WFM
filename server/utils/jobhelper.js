@@ -39,11 +39,17 @@ async function fetchAttendanceWithFilters({ date, department, unit }) {
 
         pipeline1.push(
             {
-                $unwind: "$slot"
+                $group: {
+                    _id: "$employeeId",
+                    slots: { $first: "$slot" }
+                }
+            },
+            {
+                $unwind: "$slots"
             },
             {
                 $group: {
-                    _id: "$slot",
+                    _id: "$slots",
                     count: { $sum: 1 }
                 }
             }
@@ -133,7 +139,7 @@ async function fetchAvailableEmployeesWithFilters({date, department, slot}){
             },
             {
                 $project: {
-                    _id: 0,
+                    // _id: 0,
                     "slot": 1,
                     employeeId: 1,
                     "credits": 1,

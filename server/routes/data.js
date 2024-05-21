@@ -25,6 +25,7 @@ const UserDetailModel = require("../models/Userdetail");
 const multer = require('multer');
 const csv = require('csv-parser');
 const fs = require('fs');
+const AvailableModel = require("../models/Available");
 
 // Multer configuration for handling file uploads
 const upload = multer({ dest: 'uploads/' }); // Specify the upload directory
@@ -45,7 +46,7 @@ router.post("/add-csv-data", upload.single('csvFile'), async (req, res) => {
       .pipe(csv())
       .on('data', async (row) => {
         // Process each row of the CSV file
-        console.log("row" , row);
+        console.log(row);
         const { employeeId, department, unit, date, slot, status } = row;
         const parsedSlot = JSON.parse(slot).map(Number);
         const parsedDate = new Date(date);
@@ -109,7 +110,9 @@ router.post("/add-data", async (req, res) => {
 // API endpoint for assigning an employee
 router.post("/assign-employee", async (req, res) => {
   createJobEntry(req, res);
-  const { employeeId } = req.body;
+  const { employeeId, id} = req.body;
+  await AvailableModel.deleteOne({_id : id});
+
   await updateCredits({ credits: 1, employeeId });
 });
 
@@ -145,8 +148,9 @@ router.get("/getattendance", async (req, res) => {
       date.setHours(0, 0, 0, 0);
     }
     if (!department) {
-      department = "General";
+      department = "Surgery";
     }
+    console.log(req.query);
     const result = await fetchAttendanceWithFilters({ date, department, unit });
     return res.json({
       success: true,
