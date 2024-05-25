@@ -11,20 +11,29 @@ import EmployeeContainer from "./Pages/Employee.js";
 function App() {
   const [cookie] = useCookies(["token"]);
 
+  console.log("Cookie: ",cookie.access);
   return (
-    <div className="w-screen h-screen font-poppins ">
+    <div className="w-screen h-screen font-poppins">
       <BrowserRouter>
-        {cookie.token && cookie.token !== undefined ? (
-          <Routes>
-            <Route
-              path="/staffdashboard"
-              element={cookie.access === "user" ? <Staff /> : <LoggedInHome />}
-            />
-            <Route path="/home" element={<LoggedInHome />} />
-
-            <Route path="*" element={<Staff />} />
-            <Route path="/employee" element={<EmployeeContainer />} />
-          </Routes>
+        {cookie.token ? (
+          cookie.access === "admin" ? (
+            <Routes>
+              <Route path="/staffdashboard" element={<Staff />} />
+              <Route path="/home" element={<LoggedInHome />} />
+              <Route path="*" element={<Navigate to="/staffdashboard" />} />
+            </Routes>
+          ) : cookie.access === "user" ? (
+            <Routes>
+              <Route path="/employee" element={<EmployeeContainer />} />
+              <Route path="/home" element={<LoggedInHome />} />
+              <Route path="*" element={<Navigate to="/employee" />} />
+            </Routes>
+          ) : (
+            <Routes>
+              <Route path="/home" element={<LoggedInHome />} />
+              <Route path="*" element={<Navigate to="/home" />} />
+            </Routes>
+          )
         ) : (
           <Routes>
             <Route path="/home" element={<HomeComponent />} />

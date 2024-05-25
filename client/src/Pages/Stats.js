@@ -1,7 +1,7 @@
 import React from "react";
 import { useRef, useState, useEffect } from "react";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-import { Pie, getElementsAtEvent } from "react-chartjs-2";
+import { Pie } from "react-chartjs-2";
 import "react-responsive-modal/styles.css";
 import { Modal } from "react-responsive-modal";
 import Multiselect from "multiselect-react-dropdown";
@@ -86,8 +86,6 @@ const Stats = () => {
     ],
   });
 
-  let staffReq1, staffReq2, staffReq3, staffReq4, staffReq5, staffReq6;
-
   useEffect(() => {
     fetchOptions(); // Call fetchOptions function when component mounts
     // Update data every minute
@@ -101,7 +99,7 @@ const Stats = () => {
 
   const fetchOptions = async (department, slot) => {
     try {
-      const encodedDate = "2024-04-25T00:00:00.000+00:00";
+      // const encodedDate = "2024-04-25T00:00:00.000+00:00";
       console.log("Department: ", department, " Slot: ", slot);
       const date = new Date(); // Get the current date and time
       const year = date.getFullYear();
@@ -111,7 +109,7 @@ const Stats = () => {
 
       const response = await axios.get("/data/get-available-employees", {
         params: {
-          date: encodedDate,
+          date: formattedDate,
           department: department,
           slot: slot,
         },
@@ -120,14 +118,17 @@ const Stats = () => {
       const Emp = response.data.data;
       let Arr = [];
       Emp.map((item) => {
-        Arr.push({ id: item.employeeId, username: item.username, slot: item.slot });
+        Arr.push({
+          id: item.employeeId,
+          username: item.username,
+          slot: item.slot,
+        });
       });
 
       console.log("Arr:", Arr);
 
       setOptionsEmployee(Arr); // Update options state with fetched data
       setLoading(false); // Update loading state to indicate options are loaded
-
     } catch (error) {
       console.error("Error fetching options:", error);
     }
@@ -135,8 +136,8 @@ const Stats = () => {
 
   const fetchData = async (department, unit) => {
     try {
-      console.log("Get Attendance:", unit)
-      const encodedDate = "2024-05-20T00:00:00.000+00:00";
+      console.log("Get Attendance:", unit);
+      // const encodedDate = "2024-04-27T00:00:00.000+00:00";
       const date = new Date(); // Get the current date and time
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0"); // Month is zero-based, so add 1
@@ -144,43 +145,36 @@ const Stats = () => {
       const formattedDate = `${year}-${month}-${day}T00:00:00.000+00:00`;
       const response = await axios.get("/data/getattendance", {
         params: {
-          date: encodedDate,
+          date: formattedDate,
           department: department,
           unit: unit,
         },
       });
       console.log(response.data.data);
       const dataPie = response.data.data;
-      let StaffGap = [];
+      // let StaffGap = [];
       dataPie.map((item, index) => {
         const currentStaff = item.count;
         const requiredStaff = item.requirement - item.count;
         let low, high;
-        // console.log("Current Staff: ",currentStaff," Required Staff: ",requiredStaff);
         if (index === 0) {
           low = 0;
           high = 4;
-          staffReq1 = requiredStaff;
         } else if (index === 1) {
           low = 4;
           high = 8;
-          staffReq2 = requiredStaff;
         } else if (index === 2) {
           low = 8;
           high = 12;
-          staffReq3 = requiredStaff;
         } else if (index === 3) {
           low = 12;
           high = 16;
-          staffReq4 = requiredStaff;
         } else if (index === 4) {
           low = 16;
           high = 20;
-          staffReq5 = requiredStaff;
         } else if (index === 5) {
           low = 20;
           high = 24;
-          staffReq6 = requiredStaff;
         }
 
         if (currentTime >= low && currentTime < high) {
@@ -316,10 +310,6 @@ const Stats = () => {
         "Nephrology Unit",
         "Endocrinology Unit",
       ]);
-    } else if (selectedDepartment === "General") {
-      setUnit("A");
-      fetchData(selectedDepartment, "A");
-      setUnitOptions(["A", "B"]);
     }
   };
 
@@ -330,14 +320,14 @@ const Stats = () => {
 
   // Function to handle employee selection/deselection
   const handleEmployeeSelect = (selectedList) => {
-      setSelectedEmployees(selectedList);
+    setSelectedEmployees(selectedList);
   };
 
   // Function to handle confirm button click
   const handleConfirmClick = async () => {
     try {
       console.log("Selected Employees: ", selectedEmployees);
-      const encodedDate = "2024-04-25T00:00:00.000+00:00";
+      // const encodedDate = "2024-04-25T00:00:00.000+00:00";
 
       const date = new Date(); // Get the current date and time
       const year = date.getFullYear();
@@ -352,10 +342,9 @@ const Stats = () => {
             employeeId: item.id, // Assuming each item represents a single employee
             department: department,
             unit: unit,
-            date: encodedDate,
+            date: formattedDate,
             slot: parseInt(item.slot),
-            status: "working"
-            
+            status: "working",
           });
         })
       );
@@ -363,7 +352,7 @@ const Stats = () => {
 
       // Close the modal after successful submission
       onCloseModal();
-      console.log("Dep:",department,"Unit:",unit)
+      console.log("Dep:", department, "Unit:", unit);
       fetchData(department, unit);
     } catch (error) {
       console.error("Error sending data to the backend:", error);
@@ -383,10 +372,8 @@ const Stats = () => {
   const chartRef = useRef();
 
   const onClickChart1 = (event, slot) => {
-    if (getElementsAtEvent(chartRef.current, event).length > 0) {
-      fetchOptions(department, slot);
-      setOpen(true);
-    }
+    fetchOptions(department, slot);
+    setOpen(true);
   };
 
   return (
@@ -416,7 +403,6 @@ const Stats = () => {
             </option>
             <option value="Emergency Medicine">Emergency Medicine</option>
             <option value="Internal Medicine">Internal Medicine</option>
-            <option value="General">General</option>
           </select>
         </div>
         <div>
