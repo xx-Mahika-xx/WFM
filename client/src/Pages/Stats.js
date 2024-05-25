@@ -119,6 +119,7 @@ const Stats = () => {
       let Arr = [];
       Emp.map((item) => {
         Arr.push({
+          _id: item._id,
           id: item.employeeId,
           username: item.username,
           slot: item.slot,
@@ -339,6 +340,7 @@ const Stats = () => {
       await Promise.all(
         selectedEmployees.map(async (item) => {
           await axios.post("/data/assign-employee", {
+            _id: item._id,
             employeeId: item.id, // Assuming each item represents a single employee
             department: department,
             unit: unit,
