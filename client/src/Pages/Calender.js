@@ -139,7 +139,7 @@ const ReactBigCalendar = () => {
               <option value="3">08:00 - 12:00</option>
               <option value="4">12:00 - 16:00</option>
               <option value="5">16:00 - 20:00</option>
-              <option value="6">20:00 - 00:00</option>
+              <option value="6">20:00 - 23:59</option>
             </select>
           </div>
           <div className="flex flex-col">

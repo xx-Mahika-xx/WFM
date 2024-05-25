@@ -203,7 +203,7 @@ const Stats = () => {
           } else if (index === 5) {
             setPieData6(CurrentData);
           }
-        } else {
+        } else if (currentTime<low) {
           let UpcomingData = {
             labels: ["Upcoming Staffing", "Staffing Gaps"],
             datasets: [
@@ -227,6 +227,32 @@ const Stats = () => {
             setPieData5(UpcomingData);
           } else if (index === 5) {
             setPieData6(UpcomingData);
+          }
+        }
+        else {
+          let PreviousData = {
+            labels: ["Staffing", "Staffing Gaps"],
+            datasets: [
+              {
+                label: "Staffing",
+                data: [currentStaff, requiredStaff],
+                borderColor: "black",
+                backgroundColor: ["#A0A0A0", "#EC7272"],
+              },
+            ],
+          };
+          if (index === 0) {
+            setPieData1(PreviousData);
+          } else if (index === 1) {
+            setPieData2(PreviousData);
+          } else if (index === 2) {
+            setPieData3(PreviousData);
+          } else if (index === 3) {
+            setPieData4(PreviousData);
+          } else if (index === 4) {
+            setPieData5(PreviousData);
+          } else if (index === 5) {
+            setPieData6(PreviousData);
           }
         }
       });
@@ -340,7 +366,7 @@ const Stats = () => {
       await Promise.all(
         selectedEmployees.map(async (item) => {
           await axios.post("/data/assign-employee", {
-            _id: item._id,
+            id: item._id,
             employeeId: item.id, // Assuming each item represents a single employee
             department: department,
             unit: unit,
@@ -504,7 +530,7 @@ const Stats = () => {
           style={{ boxShadow: "5px 5px 5px 5px rgba(0, 0, 0, 0.3)" }}
         >
           <h3 className="text-lg font-semibold mb-2" style={{ color: "#000" }}>
-            Timings: 20:00 - 00:00
+            Timings: 20:00 - 23:59
           </h3>
           <Pie
             style={{ maxHeight: "96%" }}
