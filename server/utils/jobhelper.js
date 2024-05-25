@@ -11,7 +11,7 @@ const MINIMUM_REQ=10;
 
 async function fetchAttendanceWithFilters({ date, department, unit }) {
     try {
-        
+        console.log(date);
         const pipeline1 = [
             {
                 $match: {
@@ -222,7 +222,8 @@ async function getCalendarData({ employeeId }) {
     const aggregateQuery = [
         {
             $match: {
-                employeeId: mongoose.Types.ObjectId(employeeId)
+                employeeId: mongoose.Types.ObjectId(employeeId),
+                status: { $ne: "onleave" }
             }
         },
         {
