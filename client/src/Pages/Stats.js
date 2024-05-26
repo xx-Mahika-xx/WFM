@@ -137,6 +137,8 @@ const Stats = () => {
 
   const fetchData = async (department, unit) => {
     try {
+      
+      console.log("Department: ", department, " Unit: ", unit);
       console.log("Get Attendance:", unit);
       // const encodedDate = "2024-04-27T00:00:00.000+00:00";
       const date = new Date(); // Get the current date and time
@@ -285,12 +287,14 @@ const Stats = () => {
     const selectedDepartment = e.target.value;
     setDepartment(selectedDepartment);
 
-    // Update the options for the second dropdown based on the selected department
-    // Example: You can fetch options from an API based on the selected department
-    if (selectedDepartment === "Surgery") {
-      setUnit("General Surgery Unit");
+    const updateUnitAndFetchData = (unit, options) => {
+      setUnit(unit);
+      setUnitOptions(options);
       fetchData(selectedDepartment, unit);
-      setUnitOptions([
+    };
+
+    if (selectedDepartment === "Surgery") {
+      updateUnitAndFetchData("General Surgery Unit", [
         "General Surgery Unit",
         "Orthopedic Surgery Unit",
         "Cardiothoracic Surgery Unit",
@@ -298,9 +302,7 @@ const Stats = () => {
         "Plastic and Reconstructive Surgery Unit",
       ]);
     } else if (selectedDepartment === "Pediatrics") {
-      setUnit("Neonatal Intensive Care Unit (NICU)");
-      fetchData(selectedDepartment, unit);
-      setUnitOptions([
+      updateUnitAndFetchData("Neonatal Intensive Care Unit (NICU)", [
         "Neonatal Intensive Care Unit (NICU)",
         "Pediatric Oncology Unit",
         "Pediatric Cardiology Unit",
@@ -308,9 +310,7 @@ const Stats = () => {
         "Pediatric Pulmonology Unit",
       ]);
     } else if (selectedDepartment === "Obstetrics and Gynecology") {
-      setUnit("Labor and Delivery Unit");
-      fetchData(selectedDepartment, unit);
-      setUnitOptions([
+      updateUnitAndFetchData("Labor and Delivery Unit", [
         "Labor and Delivery Unit",
         "High-Risk Obstetrics Unit",
         "Gynecologic Oncology Unit",
@@ -318,9 +318,7 @@ const Stats = () => {
         "Maternal-Fetal Medicine Unit",
       ]);
     } else if (selectedDepartment === "Emergency Medicine") {
-      setUnit("Trauma Unit");
-      fetchData(selectedDepartment, unit);
-      setUnitOptions([
+      updateUnitAndFetchData("Trauma Unit", [
         "Trauma Unit",
         "Critical Care Unit",
         "Pediatric Emergency Unit",
@@ -328,9 +326,7 @@ const Stats = () => {
         "Stroke Unit",
       ]);
     } else if (selectedDepartment === "Internal Medicine") {
-      setUnit("Cardiology Unit");
-      fetchData(selectedDepartment, unit);
-      setUnitOptions([
+      updateUnitAndFetchData("Cardiology Unit", [
         "Cardiology Unit",
         "Gastroenterology Unit",
         "Pulmonology Unit",
