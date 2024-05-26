@@ -13,6 +13,8 @@ const Stats = () => {
   const [open, setOpen] = useState(false);
   const onCloseModal = () => setOpen(false);
   const [optionsEmployee, setOptionsEmployee] = useState([]);
+  const [startDate, setStartDate] = useState("");
+  const [todayDate, setTodayDate] = useState("");
 
   const [pieData1, setPieData1] = useState({
     labels: ["Current Staffing", "Staffing Gaps"],
@@ -89,19 +91,37 @@ const Stats = () => {
   useEffect(() => {
     fetchOptions(); // Call fetchOptions function when component mounts
     // Update data every minute
+    // getTodayDate();
     fetchData("Surgery", "General Surgery Unit");
+
+    const getTodayDate = () => {
+      const today = new Date();
+      const year = today.getFullYear();
+      let month = today.getMonth() + 1;
+      let day = today.getDate();
+      month = month < 10 ? "0" + month : month;
+      day = day < 10 ? "0" + day : day;
+      setTodayDate(`${year}-${month}-${day}`);
+    };
+
+    getTodayDate();
+
+    setStartDate(todayDate);
+
     const interval = setInterval(() => {
       setCurrentTime(getCurrentTime()); // Update current time
     }, 60000); // Update every minute
 
     return () => clearInterval(interval); // Cleanup interval on unmount
+    
   }, []);
 
   const fetchOptions = async (department, slot) => {
     try {
       // const encodedDate = "2024-04-25T00:00:00.000+00:00";
       console.log("Department: ", department, " Slot: ", slot);
-      const date = new Date(); // Get the current date and time
+      const date = new Date(startDate); // Get the current date and time
+      console.log("Start Date:",startDate)
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0"); // Month is zero-based, so add 1
       const day = String(date.getDate()).padStart(2, "0");
@@ -141,7 +161,7 @@ const Stats = () => {
       console.log("Department: ", department, " Unit: ", unit);
       console.log("Get Attendance:", unit);
       // const encodedDate = "2024-04-27T00:00:00.000+00:00";
-      const date = new Date(); // Get the current date and time
+      const date = new Date(startDate); // Get the current date and time
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0"); // Month is zero-based, so add 1
       const day = String(date.getDate()).padStart(2, "0");
@@ -400,6 +420,11 @@ const Stats = () => {
     setOpen(true);
   };
 
+  const handleStartDateChange = (event) => {
+    setStartDate(event.target.value);
+    fetchData(department,unit);
+  };
+
   return (
     <div>
       {/* Common header */}
@@ -441,6 +466,18 @@ const Stats = () => {
             ))}
           </select>
         </div>
+      </div>
+
+      <div className="flex justify-center flex-col md:flex-row items-center mb-4 md:mb-8">
+        <input
+          type="date"
+          id="startDate"
+          className="border border-gray-300 rounded-md py-2 px-4 focus:outline-none focus:border-blue-400"
+          value={startDate}
+          onChange={handleStartDateChange}
+          min={todayDate}
+          // Add necessary state or props for value and onChange
+        />
       </div>
 
       {/* Responsive divs */}
