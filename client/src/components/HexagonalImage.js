@@ -3,7 +3,7 @@ const HexagonalImage = ({
     imglink
 }) => {
     return (
-        <img className="hexagon" src={'http://localhost:3000/' + imglink} />
+        <img className="hexagon" src={'/' + imglink} />
     );
 };
 
