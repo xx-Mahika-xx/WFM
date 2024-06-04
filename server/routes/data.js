@@ -201,7 +201,10 @@ router.post("/add-availability", async (req, res) => {
   // Convert start and end date strings to JavaScript Date objects
   const startLoop = new Date(startDate);
   const endLoop = new Date(endDate);
-
+  let slotPreferred = slot;
+  if(slot === null || slot===""){
+    slotPreferred = [1,2,3,4,5,6];
+  }
   // Array to hold all created entries
   const createdEntries = [];
   const updatedEntries = [];
@@ -212,8 +215,8 @@ router.post("/add-availability", async (req, res) => {
     currentDate.setDate(currentDate.getDate() + 1)
   ) {
     const existingEntry = await Available.findOneAndUpdate(
-      { employeeId, date: currentDate, department, slot },
-      { $set: { slot: slot } },
+      { employeeId, date: currentDate, department},
+      { $set: { slot: slotPreferred } },
       { new: true }
     );
 
@@ -224,7 +227,7 @@ router.post("/add-availability", async (req, res) => {
         employeeId,
         date: new Date(currentDate),
         department,
-        slot,
+        slot: slotPreferred,
       };
 
       const newEntry = await Available.create(newEntryData);
