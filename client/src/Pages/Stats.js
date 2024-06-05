@@ -113,7 +113,6 @@ const Stats = () => {
     }, 60000); // Update every minute
 
     return () => clearInterval(interval); // Cleanup interval on unmount
-    
   }, []);
 
   const fetchOptions = async (department, slot) => {
@@ -121,7 +120,7 @@ const Stats = () => {
       // const encodedDate = "2024-04-25T00:00:00.000+00:00";
       console.log("Department: ", department, " Slot: ", slot);
       const date = new Date(startDate); // Get the current date and time
-      console.log("Start Date:",startDate)
+      console.log("Start Date:", startDate);
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0"); // Month is zero-based, so add 1
       const day = String(date.getDate()).padStart(2, "0");
@@ -157,7 +156,6 @@ const Stats = () => {
 
   const fetchData = async (department, unit) => {
     try {
-      
       console.log("Department: ", department, " Unit: ", unit);
       console.log("Get Attendance:", unit);
       // const encodedDate = "2024-04-27T00:00:00.000+00:00";
@@ -225,7 +223,7 @@ const Stats = () => {
           } else if (index === 5) {
             setPieData6(CurrentData);
           }
-        } else if (currentTime<low) {
+        } else if (currentTime < low) {
           let UpcomingData = {
             labels: ["Upcoming Staffing", "Staffing Gaps"],
             datasets: [
@@ -250,8 +248,7 @@ const Stats = () => {
           } else if (index === 5) {
             setPieData6(UpcomingData);
           }
-        }
-        else {
+        } else {
           let PreviousData = {
             labels: ["Staffing", "Staffing Gaps"],
             datasets: [
@@ -422,7 +419,7 @@ const Stats = () => {
 
   const handleStartDateChange = (event) => {
     setStartDate(event.target.value);
-    fetchData(department,unit);
+    fetchData(department, unit);
   };
 
   return (
