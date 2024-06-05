@@ -39,7 +39,7 @@ router.post('/register', async (req, res) => {
 		
 		const userDetailData = {
 			employeeId: newUser._id,
-			department:"General Surgery Unit",
+			department:"Surgery",
 			casual_leave: 10,
 			sick_leave: 10,
 			paid_leave: 10,
